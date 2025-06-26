@@ -1,19 +1,24 @@
 import axios from 'axios';
 
+const BASE_ID = process.env.AIRTABLE_BASE_ID;
+const TABLE   = 'Restaurants';
+const TOKEN   = process.env.AIRTABLE_TOKEN;
+
 export default async function handler(req, res) {
-  const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
-  const AIRTABLE_TABLE_NAME = 'Restaurants';
-  const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
+  const headers = { Authorization: `Bearer ${TOKEN}` };
+  let records = [];
+  let offset  = null;
 
   try {
-    const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_NAME}`;
-    const response = await axios.get(url, {
-      headers: {
-        Authorization: `Bearer ${AIRTABLE_TOKEN}`,
-      },
-    });
+    do {
+      const url = `https://api.airtable.com/v0/${BASE_ID}/${TABLE}?pageSize=100${offset ? `&offset=${offset}` : ''}`;
+      const result = await axios.get(url, { headers });
 
-    const records = response.data.records.map((r) => ({
+      records.push(...result.data.records);
+      offset = result.data.offset;
+    } while (offset);
+
+    const cleaned = records.map(r => ({
       id: r.id,
       name: r.fields['Name'],
       cuisines: r.fields['Cuisine(s)'] || [],
@@ -23,9 +28,9 @@ export default async function handler(req, res) {
       longitude: r.fields['Longitude'],
     }));
 
-    res.status(200).json(records);
+    res.status(200).json(cleaned);
   } catch (err) {
     console.error(err.response?.data || err.message);
-    res.status(500).json({ error: 'Failed to fetch data from Airtable' });
+    res.status(500).json({ error: 'Failed to fetch from Airtable' });
   }
 }

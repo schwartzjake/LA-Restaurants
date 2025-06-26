@@ -7,7 +7,7 @@ import { useState, useRef, useEffect } from 'react';
  *  - value     : string[]          (currently selected cuisines)
  *  - onChange  : (string[]) => {}  (lifted state)
  */
-export default function CuisineFilter({ options, value, onChange }) {
+export default function CuisineFilter({ options, value, onChange, placeholder }) {
   const [open, setOpen]   = useState(false);
   const [query, setQuery] = useState('');
   const boxRef            = useRef(null);
@@ -46,7 +46,7 @@ export default function CuisineFilter({ options, value, onChange }) {
 
         <input
           className="min-w-[120px] flex-1 rounded border border-neutral-300 px-2 py-1 text-sm focus:border-emerald-500 focus:outline-none"
-          placeholder="Add cuisine…"
+          placeholder={placeholder || "Select item…"}
           value={query}
           onFocus={() => setOpen(true)}
           onChange={e => { setQuery(e.target.value); setOpen(true); }}

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import CuisineFilter from '../components/CuisineFilter';
 
 export default function Home() {
-  const [restaurants, setRestaurants] = useState([]);
+  const [restaurants, setRestaurants]   = useState([]);
   const [selectedCuisines, setSelected] = useState([]);
 
   useEffect(() => {

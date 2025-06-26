@@ -23,7 +23,9 @@ export default function Home() {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 font-sans">
-      <h1 className="mb-4 text-3xl font-bold">L.A. Restaurant Recommendations</h1>
+      <h1 className="mb-4 text-3xl font-bold">
+        L.A. Restaurant Recommendations
+      </h1>
 
       <CuisineFilter
         allCuisines={allCuisines}
@@ -32,7 +34,9 @@ export default function Home() {
       />
 
       {filtered.length === 0 ? (
-        <p className="mt-6 text-neutral-600">No restaurants match those cuisines.</p>
+        <p className="mt-6 text-neutral-600">
+          No restaurants match those cuisines.
+        </p>
       ) : (
         <div className="grid gap-5">
           {filtered.map(r => (

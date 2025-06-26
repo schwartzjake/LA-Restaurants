@@ -12,8 +12,11 @@ export default function Home() {
   }, []);
 
   const allCuisines = Array.from(
-    new Set(restaurants.flatMap(r => r.cuisines || []))
-  ).sort();
+  new Set(
+    (Array.isArray(restaurants) ? restaurants : [])      // ✅ guard
+      .flatMap(r => r.cuisines || [])
+  )
+).sort();
 
   const filtered = selectedCuisines.length
     ? restaurants.filter(r =>

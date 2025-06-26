@@ -2,16 +2,13 @@ import { useEffect, useState } from 'react';
 import CuisineFilter from '../components/CuisineFilter';
 
 export default function Home() {
-  const [restaurants, setRestaurants]   = useState([]);
+  const [restaurants, setRestaurants] = useState([]);
   const [selectedCuisines, setSelected] = useState([]);
 
   useEffect(() => {
-    async function load() {
-      const res  = await fetch('/api/restaurants');
-      const data = await res.json();
-      setRestaurants(data);
-    }
-    load();
+    fetch('/api/restaurants')
+      .then(r => r.json())
+      .then(setRestaurants);
   }, []);
 
   const allCuisines = Array.from(
@@ -25,15 +22,8 @@ export default function Home() {
     : restaurants;
 
   return (
-    <div style={{
-      padding: '2rem',
-      fontFamily: 'system-ui, sans-serif',
-      maxWidth: 800,
-      margin: '0 auto'
-    }}>
-      <h1 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '1rem' }}>
-        L.A. Restaurant Recommendations
-      </h1>
+    <main className="mx-auto max-w-3xl px-4 py-8 font-sans">
+      <h1 className="mb-4 text-3xl font-bold">L.A. Restaurant Recommendations</h1>
 
       <CuisineFilter
         allCuisines={allCuisines}
@@ -42,39 +32,36 @@ export default function Home() {
       />
 
       {filtered.length === 0 ? (
-        <p>No restaurants match those cuisines.</p>
+        <p className="mt-6 text-neutral-600">No restaurants match those cuisines.</p>
       ) : (
-        <div style={{ display: 'grid', gap: '1.25rem' }}>
+        <div className="grid gap-5">
           {filtered.map(r => (
-            <div key={r.id} style={{
-              border: '1px solid #ddd',
-              padding: '1rem',
-              borderRadius: '8px',
-              backgroundColor: '#fafafa',
-              boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
-            }}>
-              <h2 style={{ margin: '0 0 0.5rem', fontSize: '1.25rem' }}>
-                {r.name}
-              </h2>
-              <div style={{ marginBottom: 4, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            <article
+              key={r.id}
+              className="rounded-lg border border-neutral-200 bg-neutral-50 p-4 shadow-sm"
+            >
+              <h2 className="text-xl font-semibold">{r.name}</h2>
+
+              <div className="mt-2 flex flex-wrap gap-2">
                 {(r.cuisines || []).map(c => (
-                  <span key={c} style={{
-                    background: '#eee',
-                    padding: '2px 8px',
-                    fontSize: '0.85rem',
-                    borderRadius: 12
-                  }}>{c}</span>
+                  <span
+                    key={c}
+                    className="rounded-full bg-emerald-100 px-2 py-0.5 text-sm text-emerald-900"
+                  >
+                    {c}
+                  </span>
                 ))}
               </div>
+
               {r.neighborhood && (
-                <div style={{ fontSize: '0.9rem', color: '#666' }}>
+                <p className="mt-1 text-sm text-neutral-600">
                   Neighborhood: {r.neighborhood}
-                </div>
+                </p>
               )}
-            </div>
+            </article>
           ))}
         </div>
       )}
-    </div>
+    </main>
   );
 }

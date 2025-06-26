@@ -14,10 +14,11 @@ export default function CuisineFilter({ allCuisines, selected, onChange }) {
 
   /* ---------- derived: suggestions that start with / include query ---------- */
   const suggestions = allCuisines
-    .filter(c =>
-      c.toLowerCase().includes(query.toLowerCase()) && !selected.includes(c)
-    )
-    .slice(0, 10); // keep list short
+  .filter(c =>
+    !query ||                      // if query is empty, keep everything
+    c.toLowerCase().includes(query.toLowerCase())
+  )
+  .filter(c => !selected.includes(c));
 
   /* ---------- helpers ---------- */
   const add    = c => { onChange([...selected, c]); setQuery(''); };
@@ -71,7 +72,7 @@ export default function CuisineFilter({ allCuisines, selected, onChange }) {
             zIndex: 10,
             background: '#fff',
             border: '1px solid #ccc',
-            maxHeight: 180,
+            maxHeight: 260,
             overflowY: 'auto',
             width: '100%'
           }}

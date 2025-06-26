@@ -56,6 +56,7 @@ export default function Home() {
             options={allCuisines}
             value={selectedCuisines}
             onChange={setSelected}
+            placeholder="Pick a cuisine…"
           />
 
           {selectedCuisines.length > 0 && (

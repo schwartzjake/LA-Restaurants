@@ -47,13 +47,13 @@ export default function Home() {
             options={allCuisines}
             value={selCuisines}
             onChange={setSelCuisines}
-            placeholder="Add cuisine…"
+            placeholder="Select Cuisine(s)"
           />
           <MultiSelectFilter
             options={allHoods}
             value={selHoods}
             onChange={setSelHoods}
-            placeholder="Pick a neighbourhood"
+            placeholder="Pick a Neighborhood"
           />
           {(selCuisines.length || selHoods.length) && (
             <button

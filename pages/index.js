@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import CuisineFilter from '../components/CuisineFilter';
+import NeighborhoodFilter from '../components/NeighborhoodFilter';
 
 export default function Home() {
   const [restaurants, setRestaurants]   = useState([]);

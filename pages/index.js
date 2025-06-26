@@ -13,6 +13,7 @@ export default function Home() {
       const res  = await fetch('/api/restaurants');
       const data = await res.json();
       setRestaurants(data);
+      console.log(restaurants.length)
     }
     load();
   }, []);

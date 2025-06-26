@@ -30,11 +30,28 @@ export default function Home() {
         L.A. Restaurant Recommendations
       </h1>
 
-      <CuisineFilter
-        allCuisines={allCuisines}
-        selected={selectedCuisines}
-        onChange={setSelected}
-      />
+      <div className="sticky top-0 z-10 bg-white py-4 mb-6 border-b border-neutral-200 shadow-sm">
+  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <CuisineFilter
+      allCuisines={allCuisines}
+      selected={selectedCuisines}
+      onChange={setSelected}
+    />
+
+    {selectedCuisines.length > 0 && (
+      <button
+        onClick={() => setSelected([])}
+        className="text-sm font-medium text-rose-600 hover:underline"
+      >
+        Clear all
+      </button>
+    )}
+  </div>
+
+  <p className="mt-2 text-sm text-neutral-600">
+    Showing {filtered.length} restaurant{filtered.length !== 1 ? 's' : ''}
+  </p>
+</div>
 
       {filtered.length === 0 ? (
         <p className="mt-6 text-neutral-600">

@@ -4,6 +4,7 @@ import CuisineFilter from '../components/CuisineFilter';
 export default function Home() {
   const [restaurants, setRestaurants]   = useState([]);
   const [selectedCuisines, setSelected] = useState([]);
+  const [selectedHoods, setHoods] = useState([]);
 
   useEffect(() => {
     fetch('/api/restaurants')
@@ -18,11 +19,21 @@ export default function Home() {
   )
 ).sort();
 
-  const filtered = selectedCuisines.length
-    ? restaurants.filter(r =>
-        (r.cuisines || []).some(c => selectedCuisines.includes(c))
-                        )
-    : restaurants;
+  const allHoods = Array.from(new Set(restaurants.map(r => r.neighborhood).filter(Boolean))).sort();
+
+  let filtered = restaurants;
+
+if (selectedCuisines.length) {
+  filtered = filtered.filter(r =>
+    (r.cuisines || []).some(c => selectedCuisines.includes(c))
+  );
+}
+
+if (selectedHoods.length) {
+  filtered = filtered.filter(r =>
+    selectedHoods.includes(r.neighborhood)
+  );
+}
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 font-sans">
@@ -47,6 +58,27 @@ export default function Home() {
       </button>
     )}
   </div>
+
+    {/* neighborhood bar */}
+<div className="sticky top-[72px] z-10 bg-white py-3 mb-6 border-b border-neutral-200 shadow-sm">
+  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <NeighborhoodFilter
+      options={allHoods}
+      value={selectedHoods}
+      onChange={setHoods}
+    />
+
+    {selectedHoods.length > 0 && (
+      <button
+        onClick={() => setHoods([])}
+        className="text-sm font-medium text-rose-600 hover:underline"
+      >
+        Clear neighborhoods
+      </button>
+    )}
+  </div>
+</div>
+
 
   <p className="mt-2 text-sm text-neutral-600">
     Showing {filtered.length} restaurant{filtered.length !== 1 ? 's' : ''}

@@ -55,7 +55,7 @@ export default function CuisineFilter({ options, value, onChange, placeholder })
 
       {/* dropdown */}
       {open && menu.length > 0 && (
-        <ul className="absolute z-20 mt-1 max-h-60 w-full overflow-y-auto rounded border border-neutral-300 bg-white shadow">
+      <ul className="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded border border-neutral-300 bg-white shadow">
           {menu.map(c => (
             <li
               key={c}

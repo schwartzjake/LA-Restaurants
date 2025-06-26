@@ -20,8 +20,8 @@ export default function Home() {
 
   const filtered = selectedCuisines.length
     ? restaurants.filter(r =>
-        selectedCuisines.every(c => (r.cuisines || []).includes(c))
-      )
+        (r.cuisines || []).some(c => selectedCuisines.includes(c))
+                        )
     : restaurants;
 
   return (

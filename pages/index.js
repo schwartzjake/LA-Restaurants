@@ -1,21 +1,21 @@
 import { useEffect, useState } from 'react';
-import CuisineFilter       from '../components/CuisineFilter';
-import NeighborhoodFilter  from '../components/NeighborhoodFilter';
+import CuisineFilter      from '../components/CuisineFilter';
+import NeighborhoodFilter from '../components/NeighborhoodFilter';
 
 export default function Home() {
-  /* ───────── state ───────── */
+  /* ── state ──────────────────────────────────────────────── */
   const [restaurants,      setRestaurants]   = useState([]);
-  const [selectedCuisines, setSelected]      = useState([]);  // cuisine pills
-  const [selectedHoods,    setHoods]         = useState([]);  // neighborhood pills
+  const [selectedCuisines, setSelected]      = useState([]);
+  const [selectedHoods,    setHoods]         = useState([]);
 
-  /* ───────── fetch Airtable data once ───────── */
+  /* ── fetch once ─────────────────────────────────────────── */
   useEffect(() => {
     fetch('/api/restaurants')
       .then(r => r.json())
       .then(setRestaurants);
   }, []);
 
-  /* ───────── derive unique option lists ───────── */
+  /* ── build option lists ─────────────────────────────────── */
   const allCuisines = Array.from(
     new Set(
       (Array.isArray(restaurants) ? restaurants : [])
@@ -27,12 +27,12 @@ export default function Home() {
     new Set(restaurants.map(r => r.neighborhood).filter(Boolean))
   ).sort();
 
-  /* ───────── filtering:  OR for cuisines,  AND with neighborhoods ───────── */
+  /* ── apply filters (OR for cuisines + optional neighbourhood) ─ */
   let filtered = restaurants;
 
   if (selectedCuisines.length) {
     filtered = filtered.filter(r =>
-      (r.cuisines || []).some(c => selectedCuisines.includes(c))   // ← OR
+      (r.cuisines || []).some(c => selectedCuisines.includes(c))
     );
   }
 
@@ -42,29 +42,39 @@ export default function Home() {
     );
   }
 
-  /* ───────── render ───────── */
+  /* ── render ─────────────────────────────────────────────── */
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 font-sans">
-      <h1 className="mb-4 text-3xl font-bold">
+      <h1 className="mb-6 text-3xl font-bold">
         L.A. Restaurant Recommendations
       </h1>
 
-      {/* ───────── CUISINE BAR ───────── */}
-      <div className="sticky top-0 z-10 mb-6 border-b border-neutral-200 bg-white py-4 shadow-sm">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      {/* ─────────── SINGLE STICKY FILTER BAR ─────────── */}
+      <div className="sticky top-0 z-20 mb-8 border-b border-neutral-200 bg-white/95 backdrop-blur py-4 shadow-sm">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-6">
+          {/* cuisine chips */}
           <CuisineFilter
             options={allCuisines}
             value={selectedCuisines}
             onChange={setSelected}
-            placeholder="Pick a cuisine…"
+            placeholder="Select a cuisine"
           />
 
-          {selectedCuisines.length > 0 && (
+          {/* neighbourhood chips */}
+          <NeighborhoodFilter
+            options={allHoods}
+            value={selectedHoods}
+            onChange={setHoods}
+            placeholder="Pick a neighborhood"
+          />
+
+          {/* clear buttons */}
+          {(selectedCuisines.length > 0 || selectedHoods.length > 0) && (
             <button
-              onClick={() => setSelected([])}
-              className="text-sm font-medium text-rose-600 hover:underline"
+              onClick={() => { setSelected([]); setHoods([]); }}
+              className="ml-auto text-sm font-medium text-rose-600 hover:underline"
             >
-              Clear cuisines
+              Clear all
             </button>
           )}
         </div>
@@ -74,29 +84,11 @@ export default function Home() {
         </p>
       </div>
 
-      {/* ───────── NEIGHBORHOOD BAR ───────── */}
-      <div className="sticky top-[72px] z-10 mb-6 border-b border-neutral-200 bg-white py-3 shadow-sm">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <NeighborhoodFilter
-            options={allHoods}
-            value={selectedHoods}
-            onChange={setHoods}
-          />
-
-          {selectedHoods.length > 0 && (
-            <button
-              onClick={() => setHoods([])}
-              className="text-sm font-medium text-rose-600 hover:underline"
-            >
-              Clear neighborhoods
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* ───────── CARD GRID ───────── */}
+      {/* ─────────── LIST ─────────── */}
       {filtered.length === 0 ? (
-        <p className="mt-6 text-neutral-600">No restaurants match those filters.</p>
+        <p className="mt-6 text-neutral-600">
+          No restaurants match those filters.
+        </p>
       ) : (
         <div className="grid gap-5">
           {filtered.map(r => (
@@ -119,7 +111,7 @@ export default function Home() {
 
               {r.neighborhood && (
                 <p className="mt-1 text-sm text-neutral-600">
-                  Neighborhood:&nbsp;{r.neighborhood}
+                  Neighbourhood:&nbsp;{r.neighborhood}
                 </p>
               )}
             </article>

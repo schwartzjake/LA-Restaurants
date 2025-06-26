@@ -1,123 +1,101 @@
-import { useEffect, useState } from 'react';
-import CuisineFilter      from '../components/CuisineFilter';
-import NeighborhoodFilter from '../components/NeighborhoodFilter';
+/**
+ * Main page – lists restaurants with chip-based cuisine & neighbourhood filters.
+ * – Data source: /api/restaurants
+ * – UI libs : vanilla React + Tailwind (no extra deps)
+ */
+import { useState, useMemo } from 'react';
+import MultiSelectFilter from '../components/MultiSelectFilter'; // generic chip filter
+import useRestaurants    from '../hooks/useRestaurants';        // custom data hook
 
 export default function Home() {
-  /* ── state ──────────────────────────────────────────────── */
-  const [restaurants,      setRestaurants]   = useState([]);
-  const [selectedCuisines, setSelected]      = useState([]);
-  const [selectedHoods,    setHoods]         = useState([]);
+  /* ───────── data fetch ───────── */
+  const { data: restaurants = [], error, loading } = useRestaurants();
 
-  /* ── fetch once ─────────────────────────────────────────── */
-  useEffect(() => {
-    fetch('/api/restaurants')
-      .then(r => r.json())
-      .then(setRestaurants);
-  }, []);
+  /* ───────── derived option lists ───────── */
+  const allCuisines   = useMemo(
+    () => uniq(restaurants.flatMap(r => r.cuisines || [])).sort(),
+    [restaurants]
+  );
+  const allHoods     = useMemo(
+    () => uniq(restaurants.map(r => r.neighborhood).filter(Boolean)).sort(),
+    [restaurants]
+  );
 
-  /* ── build option lists ─────────────────────────────────── */
-  const allCuisines = Array.from(
-    new Set(
-      (Array.isArray(restaurants) ? restaurants : [])
-        .flatMap(r => r.cuisines || [])
-    )
-  ).sort();
+  /* ───────── local filter state ───────── */
+  const [selCuisines, setSelCuisines] = useState([]);
+  const [selHoods,    setSelHoods]    = useState([]);
 
-  const allHoods = Array.from(
-    new Set(restaurants.map(r => r.neighborhood).filter(Boolean))
-  ).sort();
+  /* ───────── filtered dataset (OR on cuisine, AND on hood) ───────── */
+  const filtered = useMemo(() => {
+    let list = restaurants;
+    if (selCuisines.length)
+      list = list.filter(r => (r.cuisines || []).some(c => selCuisines.includes(c)));
+    if (selHoods.length)
+      list = list.filter(r => selHoods.includes(r.neighborhood));
+    return list;
+  }, [restaurants, selCuisines, selHoods]);
 
-  /* ── apply filters (OR for cuisines + optional neighbourhood) ─ */
-  let filtered = restaurants;
-
-  if (selectedCuisines.length) {
-    filtered = filtered.filter(r =>
-      (r.cuisines || []).some(c => selectedCuisines.includes(c))
-    );
-  }
-
-  if (selectedHoods.length) {
-    filtered = filtered.filter(r =>
-      selectedHoods.includes(r.neighborhood)
-    );
-  }
-
-  /* ── render ─────────────────────────────────────────────── */
+  /* ───────── render ───────── */
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 font-sans">
-      <h1 className="mb-6 text-3xl font-bold">
-        L.A. Restaurant Recommendations
-      </h1>
+      <h1 className="mb-6 text-3xl font-bold">L.A. Restaurant Recommendations</h1>
 
-      {/* ─────────── SINGLE STICKY FILTER BAR ─────────── */}
-      <div className="sticky top-0 z-20 mb-8 border-b border-neutral-200 bg-white/95 backdrop-blur py-4 shadow-sm">
+      {/* ---------- sticky filter row ---------- */}
+      <section className="sticky top-0 z-20 mb-6 space-y-3 border-b bg-white/95 py-4 shadow-sm backdrop-blur">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-6">
-          {/* cuisine chips */}
-          <CuisineFilter
+          <MultiSelectFilter
             options={allCuisines}
-            value={selectedCuisines}
-            onChange={setSelected}
-            placeholder="Select a cuisine"
+            value={selCuisines}
+            onChange={setSelCuisines}
+            placeholder="Add cuisine…"
           />
-
-          {/* neighbourhood chips */}
-          <NeighborhoodFilter
+          <MultiSelectFilter
             options={allHoods}
-            value={selectedHoods}
-            onChange={setHoods}
-            placeholder="Pick a neighborhood"
+            value={selHoods}
+            onChange={setSelHoods}
+            placeholder="Pick a neighbourhood"
           />
-
-          {/* clear buttons */}
-          {(selectedCuisines.length > 0 || selectedHoods.length > 0) && (
+          {(selCuisines.length || selHoods.length) && (
             <button
-              onClick={() => { setSelected([]); setHoods([]); }}
+              onClick={() => { setSelCuisines([]); setSelHoods([]); }}
               className="ml-auto text-sm font-medium text-rose-600 hover:underline"
             >
               Clear all
             </button>
           )}
         </div>
-
-        <p className="mt-2 text-sm text-neutral-600">
-          Showing {filtered.length} restaurant{filtered.length !== 1 ? 's' : ''}
+        <p className="text-sm text-neutral-600">
+          {loading ? 'Loading…' :
+           error   ? 'Error loading restaurants.' :
+           `Showing ${filtered.length} restaurant${filtered.length !== 1 ? 's' : ''}`}
         </p>
-      </div>
+      </section>
 
-      {/* ─────────── LIST ─────────── */}
-      {filtered.length === 0 ? (
-        <p className="mt-6 text-neutral-600">
-          No restaurants match those filters.
-        </p>
+      {/* ---------- results ---------- */}
+      {filtered.length === 0 && !loading ? (
+        <p className="mt-6 text-neutral-600">No restaurants match those filters.</p>
       ) : (
-        <div className="grid gap-5">
+        <ul className="grid gap-5">
           {filtered.map(r => (
-            <article
-              key={r.id}
-              className="rounded-lg border border-neutral-200 bg-neutral-50 p-4 shadow-sm"
-            >
+            <li key={r.id} className="rounded-lg border bg-neutral-50 p-4 shadow-sm">
               <h2 className="text-xl font-semibold">{r.name}</h2>
-
               <div className="mt-2 flex flex-wrap gap-2">
                 {(r.cuisines || []).map(c => (
-                  <span
-                    key={c}
-                    className="rounded-full bg-emerald-100 px-2 py-0.5 text-sm text-emerald-900"
-                  >
-                    {c}
-                  </span>
+                  <span key={c} className="pill">{c}</span>
                 ))}
               </div>
-
               {r.neighborhood && (
                 <p className="mt-1 text-sm text-neutral-600">
-                  Neighbourhood:&nbsp;{r.neighborhood}
+                  Neighbourhood&nbsp;•&nbsp;{r.neighborhood}
                 </p>
               )}
-            </article>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </main>
   );
 }
+
+/* ---------- helpers ---------- */
+const uniq = arr => [...new Set(arr)];

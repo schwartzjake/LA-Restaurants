@@ -1,87 +1,66 @@
 import { useState, useRef, useEffect } from 'react';
 
 /**
- * Props
- * ───────────────────────────────────────────
- * allCuisines : string[]             // every unique cuisine in the data
- * selected    : string[]             // currently-chosen cuisines
- * onChange    : (string[]) => void   // callback when selection changes
+ * A pill-based multi-select with a dropdown.
+ * Props:
+ *  - options   : string[]          (all possible cuisines)
+ *  - value     : string[]          (currently selected cuisines)
+ *  - onChange  : (string[]) => {}  (lifted state)
  */
-export default function CuisineFilter({ allCuisines, selected, onChange }) {
+export default function CuisineFilter({ options, value, onChange }) {
+  const [open, setOpen]   = useState(false);
   const [query, setQuery] = useState('');
-  const [open, setOpen]  = useState(false);
-  const boxRef           = useRef(null);
+  const boxRef            = useRef(null);
 
-  /* ---------- derived: suggestions that start with / include query ---------- */
-  const suggestions = allCuisines
-  .filter(c =>
-    !query ||                      // if query is empty, keep everything
-    c.toLowerCase().includes(query.toLowerCase())
-  )
-  .filter(c => !selected.includes(c));
-
-  /* ---------- helpers ---------- */
-  const add    = c => { onChange([...selected, c]); setQuery(''); };
-  const remove = c => onChange(selected.filter(x => x !== c));
-
-  /* ---------- close dropdown if user clicks outside ---------- */
+  /* --------- close on outside click --------- */
   useEffect(() => {
-    const handle = e => { if (boxRef.current && !boxRef.current.contains(e.target)) setOpen(false); };
-    document.addEventListener('click', handle);
-    return () => document.removeEventListener('click', handle);
+    const h = e => { if (boxRef.current && !boxRef.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('click', h);
+    return () => document.removeEventListener('click', h);
   }, []);
 
+  /* --------- derive menu items --------- */
+  const menu = options
+    .filter(o =>
+      o.toLowerCase().includes(query.toLowerCase()) &&
+      !value.includes(o)
+    );
+
+  /* --------- helpers --------- */
+  const add    = c => { onChange([...value, c]); setQuery(''); };
+  const remove = c => onChange(value.filter(v => v !== c));
+
   return (
-    <div ref={boxRef} style={{ position: 'relative', marginBottom: '1rem' }}>
-      {/* Tag chips + input */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-        {selected.map(c => (
+    <div ref={boxRef} className="relative">
+      {/* pill row + input */}
+      <div className="flex flex-wrap gap-2">
+        {value.map(c => (
           <span
             key={c}
             onClick={() => remove(c)}
-            style={{
-              background: '#eee',
-              padding: '4px 8px',
-              borderRadius: 4,
-              cursor: 'pointer'
-            }}
-            title="Click to remove"
+            className="cursor-pointer rounded-full bg-emerald-100 px-2 py-0.5 text-sm text-emerald-900"
           >
-            {c} ✕
+            {c} &times;
           </span>
         ))}
 
         <input
-          type="text"
-          placeholder="Type or pick cuisine"
+          className="min-w-[120px] flex-1 rounded border border-neutral-300 px-2 py-1 text-sm focus:border-emerald-500 focus:outline-none"
+          placeholder="Add cuisine…"
           value={query}
-          onChange={e => { setQuery(e.target.value); setOpen(true); }}
           onFocus={() => setOpen(true)}
-          style={{ flex: '1 0 150px', minWidth: 120, padding: 6 }}
+          onChange={e => { setQuery(e.target.value); setOpen(true); }}
         />
       </div>
 
-      {/* Dropdown */}
-      {open && suggestions.length > 0 && (
-        <ul
-          style={{
-            listStyle: 'none',
-            margin: 0,
-            padding: 0,
-            position: 'absolute',
-            zIndex: 10,
-            background: '#fff',
-            border: '1px solid #ccc',
-            maxHeight: 260,
-            overflowY: 'auto',
-            width: '100%'
-          }}
-        >
-          {suggestions.map(c => (
+      {/* dropdown */}
+      {open && menu.length > 0 && (
+        <ul className="absolute z-20 mt-1 max-h-60 w-full overflow-y-auto rounded border border-neutral-300 bg-white shadow">
+          {menu.map(c => (
             <li
               key={c}
               onClick={() => { add(c); setOpen(false); }}
-              style={{ padding: '6px 10px', cursor: 'pointer' }}
+              className="cursor-pointer px-3 py-1 hover:bg-emerald-50"
             >
               {c}
             </li>

@@ -1,13 +1,18 @@
 import { useEffect, useState } from 'react';
-import { fetchRestaurants } from '../lib/airtable';
 
 export default function Home() {
   const [restaurants, setRestaurants] = useState([]);
   const [filter, setFilter] = useState('');
 
   useEffect(() => {
-    fetchRestaurants().then(setRestaurants);
-  }, []);
+  async function loadData() {
+    const res = await fetch('/api/restaurants');
+    const data = await res.json();
+    setRestaurants(data);
+  }
+
+  loadData();
+}, []);
 
   const filtered = filter
     ? restaurants.filter((r) =>

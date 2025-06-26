@@ -1,41 +1,31 @@
 import axios from 'axios';
 
-const BASE_ID = process.env.AIRTABLE_BASE_ID;
-const TOKEN   = process.env.AIRTABLE_TOKEN;
-const headers = { Authorization: `Bearer ${TOKEN}` };
-
 export default async function handler(req, res) {
+  const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
+  const AIRTABLE_TABLE_NAME = 'Restaurants';
+  const AIRTABLE_TOKEN = process.env.AIRTABLE_TOKEN;
+
   try {
-    // 1️⃣ Pull cuisines first
-    const cuRes = await axios.get(
-      `https://api.airtable.com/v0/${BASE_ID}/Cuisines`,
-      { headers }
-    );
-    const idToCuisine = {};
-    cuRes.data.records.forEach(rec => {
-      idToCuisine[rec.id] = rec.fields['Name'];   // adjust field name if different
+    const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_NAME}`;
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: `Bearer ${AIRTABLE_TOKEN}`,
+      },
     });
 
-    // 2️⃣ Pull restaurants
-    const restRes = await axios.get(
-      `https://api.airtable.com/v0/${BASE_ID}/Restaurants`,
-      { headers }
-    );
-
-    // 3️⃣ Map cuisine IDs → names
-    const restaurants = restRes.data.records.map(r => ({
-      id:   r.id,
+    const records = response.data.records.map((r) => ({
+      id: r.id,
       name: r.fields['Name'],
-      cuisines: (r.fields['Cuisine(s)'] || []).map(id => idToCuisine[id]),
+      cuisines: r.fields['Cuisine(s)'] || [],
       neighborhood: r.fields['Neighborhood'],
       address: r.fields['Address'],
       latitude: r.fields['Latitude'],
       longitude: r.fields['Longitude'],
     }));
 
-    res.status(200).json(restaurants);
+    res.status(200).json(records);
   } catch (err) {
     console.error(err.response?.data || err.message);
-    res.status(500).json({ error: 'Airtable fetch failed' });
+    res.status(500).json({ error: 'Failed to fetch data from Airtable' });
   }
 }

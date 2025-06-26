@@ -1,4 +1,4 @@
-import CuisineFilter from './CuisineFilter';   // reuse the same UI
+import CuisineFilter from './CuisineFilter';
 
 export default function NeighborhoodFilter({ options, value, onChange }) {
   return (
@@ -6,6 +6,7 @@ export default function NeighborhoodFilter({ options, value, onChange }) {
       options={options}
       value={value}
       onChange={onChange}
+      placeholder="Pick a neighborhood"
     />
   );
 }

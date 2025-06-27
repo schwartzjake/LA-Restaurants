@@ -52,12 +52,14 @@ export default function Home() {
             value={selCuisines}
             onChange={setSelCuisines}
             placeholder="Add cuisine…"
+            inputClassName="text-white placeholder-white"
           />
           <MultiSelectFilter
             options={allHoods}
             value={selHoods}
             onChange={setSelHoods}
             placeholder="Pick a neighbourhood"
+            inputClassName="text-white placeholder-white"
           />
           {hasFilters && (
             <button
@@ -81,7 +83,7 @@ export default function Home() {
       {filtered.length === 0 && !loading ? (
         <p className="text-white/70">No restaurants match those filters.</p>
       ) : (
-        <ul className="grid gap-6">
+        <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map(r => (
             <li
               key={r.id}

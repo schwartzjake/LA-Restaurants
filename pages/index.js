@@ -34,40 +34,45 @@ export default function Home() {
 
   /* ─── Drive‑time fetch ─── */
   const fetchDriveTimes = async () => {
-    if (!address.trim() || !ORS_KEY) return;
+  console.log('Calculate clicked');                 // sanity ping
+  if (!address.trim() || !ORS_KEY) {
+    alert('Missing address or ORS key');
+    return;
+  }
 
-    // 1. Geocode the user address with Nominatim (OpenStreetMap)
-    const geo = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`)
-      .then(r => r.json());
-    const loc = geo[0] && { lat: parseFloat(geo[0].lat), lng: parseFloat(geo[0].lon) };
-    if (!loc) { alert('Address not found'); return; }
+  // 1. Geocode
+  const geo = await fetch(
+    `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`
+  ).then(r => r.json());
 
-    // 2. Build the locations array: origin first, followed by every restaurant (lon, lat)
-    const locations = [[loc.lng, loc.lat], ...restaurants.map(r => [r.longitude, r.latitude])];
+  if (!geo.length) { alert('Address not found'); return; }
+  const loc = { lat: +geo[0].lat, lng: +geo[0].lon };
 
-    // 3. Call OpenRouteService Matrix API for driving durations (seconds)
-    const body = JSON.stringify({
-      locations,
-      metrics: ['duration'],
-      units: 'm'
-    });
+  // 2. Filter restaurants with coords
+  const coords = restaurants.filter(r => r.latitude && r.longitude);
+  if (!coords.length) { alert('No restaurant coords'); return; }
 
-    const orsRes = await fetch('https://api.openrouteservice.org/v2/matrix/driving-car', {
-      method: 'POST',
-      headers: {
-        'Authorization': ORS_KEY,
-        'Content-Type': 'application/json'
-      },
-      body
-    }).then(r => r.json());
+  // 3. ORS Matrix
+  const body = JSON.stringify({
+    locations: [[loc.lng, loc.lat], ...coords.map(r => [r.longitude, r.latitude])],
+    metrics: ['duration'],
+    units: 'm'
+  });
 
-    const durations = orsRes.durations?.[0] || [];
-    const map = {};
-    durations.slice(1).forEach((dur, idx) => { // skip the first element (origin→origin)
-      map[restaurants[idx].id] = dur; // dur is in seconds already
-    });
-    setDriveTimes(map);
-  };
+  const orsRes = await fetch('https://api.openrouteservice.org/v2/matrix/driving-car', {
+    method: 'POST',
+    headers: { Authorization: ORS_KEY, 'Content-Type': 'application/json' },
+    body
+  }).then(r => r.json());
+
+  if (orsRes.error) { console.error(orsRes.error); alert(orsRes.error.message); return; }
+
+  const durations = orsRes.durations?.[0] || [];
+  const map = {};
+  durations.slice(1).forEach((sec, i) => { map[coords[i].id] = sec; });
+  setDriveTimes(map);
+};
+
 
   /* ─── Filter + OR logic ─── */
   const filteredSorted = useMemo(() => {

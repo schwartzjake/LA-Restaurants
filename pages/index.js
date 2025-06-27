@@ -4,7 +4,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import MultiSelectFilter from '../components/MultiSelectFilter';
-import { XCircle } from 'lucide-react';
+import { XCircleIcon } from '@heroicons/react/24/outline';
 
 const ORS_KEY = process.env.NEXT_PUBLIC_ORS_API_KEY;
 
@@ -113,14 +113,14 @@ export default function Home() {
             options={allCuisines}
             value={selCuisines}
             onChange={setSelCuisines}
-            placeholder="Cuisine(s)"
+            placeholder="Add cuisine…"
             inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-[#3A3A3A] focus:border-white"
           />
           <MultiSelectFilter
             options={allHoods}
             value={selHoods}
             onChange={setSelHoods}
-            placeholder="Neighborhood(s)"
+            placeholder="Pick a neighbourhood"
             inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-[#3A3A3A] focus:border-white"
           />
           {hasFilters && (
@@ -146,7 +146,7 @@ export default function Home() {
           </button>
           {address.trim() && (
             <button onClick={clearAddress} className="text-red-500 hover:text-red-400">
-              <XCircle className="w-6 h-6" />
+              <XCircleIcon className="w-6 h-6" />
             </button>
           )}
         </div>

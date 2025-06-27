@@ -10,7 +10,7 @@ export default function Home() {
   const [restaurants, setRestaurants] = useState([]);
   const [selCuisines, setSelCuisines] = useState([]);
   const [selHoods, setSelHoods] = useState([]);
-  const [address, setAddress] = useState('''');
+  const [address, setAddress] = useState('');
   const [driveTimes, setDriveTimes] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

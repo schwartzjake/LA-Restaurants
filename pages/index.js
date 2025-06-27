@@ -55,7 +55,7 @@ export default function Home() {
             onChange={setSelHoods}
             placeholder="Pick a Neighborhood"
           />
-          {(selCuisines.length || selHoods.length) && (
+          {(selCuisines.length > 0|| selHoods.length) && (
             <button
               onClick={() => { setSelCuisines([]); setSelHoods([]); }}
               className="ml-auto text-sm font-medium text-rose-600 hover:underline"

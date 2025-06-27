@@ -3,7 +3,6 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import MultiSelectFilter from '../components/MultiSelectFilter';
-import '../styles/globals.css'; // Ensure global styles for dropdown are loaded
 
 const GMAPS_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
 

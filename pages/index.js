@@ -68,9 +68,6 @@ export default function Home() {
     });
     setDriveTimes(map);
   };
-    vals.forEach((el, idx) => { if (el.status === 'OK') map[restaurants[idx].id] = el.duration.value; });
-    setDriveTimes(map);
-  };
 
   /* ─── Filter + OR logic ─── */
   const filteredSorted = useMemo(() => {

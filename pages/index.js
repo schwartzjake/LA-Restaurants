@@ -7,7 +7,8 @@
 import { useEffect, useState, useMemo } from 'react';
 import MultiSelectFilter from '../components/MultiSelectFilter';
 
-const GMAPS_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
+// OpenRouteService API key (set in .env as NEXT_PUBLIC_ORS_API_KEY)
+const ORS_KEY = process.env.NEXT_PUBLIC_ORS_API_KEY;
 
 export default function Home() {
   const [restaurants, setRestaurants] = useState([]);
@@ -33,16 +34,40 @@ export default function Home() {
 
   /* ─── Drive‑time fetch ─── */
   const fetchDriveTimes = async () => {
-    if (!address.trim() || !GMAPS_KEY) return;
-    const geo = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${GMAPS_KEY}`).then(r => r.json());
-    const loc = geo.results?.[0]?.geometry?.location;
+    if (!address.trim() || !ORS_KEY) return;
+
+    // 1. Geocode the user address with Nominatim (OpenStreetMap)
+    const geo = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`)
+      .then(r => r.json());
+    const loc = geo[0] && { lat: parseFloat(geo[0].lat), lng: parseFloat(geo[0].lon) };
     if (!loc) { alert('Address not found'); return; }
 
-    const dests = restaurants.map(r => `${r.latitude},${r.longitude}`).join('|');
-    const url   = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${loc.lat},${loc.lng}&destinations=${dests}&units=imperial&key=${GMAPS_KEY}`;
-    const dm    = await fetch(url).then(r => r.json());
-    const vals  = dm.rows?.[0]?.elements || [];
-    const map   = {};
+    // 2. Build the locations array: origin first, followed by every restaurant (lon, lat)
+    const locations = [[loc.lng, loc.lat], ...restaurants.map(r => [r.longitude, r.latitude])];
+
+    // 3. Call OpenRouteService Matrix API for driving durations (seconds)
+    const body = JSON.stringify({
+      locations,
+      metrics: ['duration'],
+      units: 'm'
+    });
+
+    const orsRes = await fetch('https://api.openrouteservice.org/v2/matrix/driving-car', {
+      method: 'POST',
+      headers: {
+        'Authorization': ORS_KEY,
+        'Content-Type': 'application/json'
+      },
+      body
+    }).then(r => r.json());
+
+    const durations = orsRes.durations?.[0] || [];
+    const map = {};
+    durations.slice(1).forEach((dur, idx) => { // skip the first element (origin→origin)
+      map[restaurants[idx].id] = dur; // dur is in seconds already
+    });
+    setDriveTimes(map);
+  };
     vals.forEach((el, idx) => { if (el.status === 'OK') map[restaurants[idx].id] = el.duration.value; });
     setDriveTimes(map);
   };
@@ -80,14 +105,14 @@ export default function Home() {
             options={allCuisines}
             value={selCuisines}
             onChange={setSelCuisines}
-            placeholder="Select Cuisine(s)"
+            placeholder="Add cuisine…"
             inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-[#3A3A3A] focus:border-white"
           />
           <MultiSelectFilter
             options={allHoods}
             value={selHoods}
             onChange={setSelHoods}
-            placeholder="Select Neighborhood(s)"
+            placeholder="Pick a neighbourhood"
             inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-[#3A3A3A] focus:border-white"
           />
           {hasFilters && (

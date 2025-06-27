@@ -1,47 +1,66 @@
 /**
- * Main page – lists restaurants with chip-based cuisine & neighbourhood filters.
- * – Data source: /api/restaurants
- * – UI libs : vanilla React + Tailwind (no extra deps)
+ * Main UI
+ * -------
+ * One sticky filter row (cuisine + neighbourhood) above a card grid.
  */
-import { useState, useMemo } from 'react';
-import MultiSelectFilter from '../components/MultiSelectFilter'; // generic chip filter
-import useRestaurants    from '../hooks/useRestaurants';        // custom data hook
+
+import { useEffect, useState, useMemo } from 'react';
+import MultiSelectFilter from '../components/MultiSelectFilter';
 
 export default function Home() {
-  /* ───────── data fetch ───────── */
-  const { data: restaurants = [], error, loading } = useRestaurants();
+  /* ─── State ─────────────────────────────────────── */
+  const [restaurants, setRestaurants]   = useState([]);
+  const [selCuisines, setSelCuisines]   = useState([]);
+  const [selHoods,    setSelHoods]      = useState([]);
+  const [error, setError]               = useState(null);
+  const [loading, setLoading]           = useState(true);
 
-  /* ───────── derived option lists ───────── */
-  const allCuisines   = useMemo(
-    () => uniq(restaurants.flatMap(r => r.cuisines || [])).sort(),
+  /* ─── Fetch once on mount ───────────────────────── */
+  useEffect(() => {
+    fetch('/api/restaurants')
+      .then(r => r.ok ? r.json() : Promise.reject(r.statusText))
+      .then(setRestaurants)
+      .catch(setError)
+      .finally(() => setLoading(false));
+  }, []);
+
+  /* ─── Build distinct option lists ───────────────── */
+  const allCuisines = useMemo(
+    () => [...new Set(restaurants.flatMap(r => r.cuisines || []))].sort(),
     [restaurants]
   );
-  const allHoods     = useMemo(
-    () => uniq(restaurants.map(r => r.neighborhood).filter(Boolean)).sort(),
+
+  const allHoods = useMemo(
+    () => [...new Set(restaurants.map(r => r.neighborhood).filter(Boolean))].sort(),
     [restaurants]
   );
 
-  /* ───────── local filter state ───────── */
-  const [selCuisines, setSelCuisines] = useState([]);
-  const [selHoods,    setSelHoods]    = useState([]);
-
-  /* ───────── filtered dataset (OR on cuisine, AND on hood) ───────── */
+  /* ─── Filtered data (OR on cuisine, AND on hood) ── */
   const filtered = useMemo(() => {
     let list = restaurants;
-    if (selCuisines.length)
-      list = list.filter(r => (r.cuisines || []).some(c => selCuisines.includes(c)));
-    if (selHoods.length)
+
+    if (selCuisines.length) {
+      list = list.filter(r =>
+        (r.cuisines || []).some(c => selCuisines.includes(c))
+      );
+    }
+    if (selHoods.length) {
       list = list.filter(r => selHoods.includes(r.neighborhood));
+    }
     return list;
   }, [restaurants, selCuisines, selHoods]);
 
-  /* ───────── render ───────── */
+  /* ─── Helpers ───────────────────────────────────── */
+  const clearAll = () => { setSelCuisines([]); setSelHoods([]); };
+  const hasFilters = Boolean(selCuisines.length || selHoods.length);
+
+  /* ─── Render ────────────────────────────────────── */
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 font-sans">
       <h1 className="mb-6 text-3xl font-bold">L.A. Restaurant Recommendations</h1>
 
-      {/* ---------- sticky filter row ---------- */}
-      <section className="sticky top-0 z-20 mb-6 space-y-3 border-b bg-white/95 py-4 shadow-sm backdrop-blur">
+      {/* Sticky filter bar */}
+      <section className="sticky top-0 z-20 mb-8 border-b bg-white/95 py-4 shadow-sm backdrop-blur">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-6">
           <MultiSelectFilter
             options={allCuisines}
@@ -55,24 +74,28 @@ export default function Home() {
             onChange={setSelHoods}
             placeholder="Pick a Neighborhood"
           />
-          {(selectedCuisines.length > 0 || selectedHoods.length > 0) && (
-  <button
-    onClick={() => { setSelCuisines([]); setSelHoods([]); }}
-    className="ml-auto text-sm font-medium text-rose-600 hover:underline"
-  >
-    Clear all
-  </button>
-)}
 
+          {hasFilters && (
+            <button
+              onClick={clearAll}
+              className="ml-auto text-sm font-medium text-rose-600 hover:underline"
+            >
+              Clear all
+            </button>
+          )}
         </div>
-        <p className="text-sm text-neutral-600">
-          {loading ? 'Loading…' :
-           error   ? 'Error loading restaurants.' :
-           `Showing ${filtered.length} restaurant${filtered.length !== 1 ? 's' : ''}`}
+
+        <p className="mt-2 text-sm text-neutral-600">
+          {loading
+            ? 'Loading…'
+            : error
+              ? 'Error loading restaurants.'
+              : `Showing ${filtered.length} restaurant${filtered.length !== 1 ? 's' : ''}`
+          }
         </p>
       </section>
 
-      {/* ---------- results ---------- */}
+      {/* Card grid */}
       {filtered.length === 0 && !loading ? (
         <p className="mt-6 text-neutral-600">No restaurants match those filters.</p>
       ) : (
@@ -80,11 +103,18 @@ export default function Home() {
           {filtered.map(r => (
             <li key={r.id} className="rounded-lg border bg-neutral-50 p-4 shadow-sm">
               <h2 className="text-xl font-semibold">{r.name}</h2>
+
               <div className="mt-2 flex flex-wrap gap-2">
                 {(r.cuisines || []).map(c => (
-                  <span key={c} className="pill">{c}</span>
+                  <span
+                    key={c}
+                    className="rounded-full bg-emerald-100 px-2 py-0.5 text-sm text-emerald-900"
+                  >
+                    {c}
+                  </span>
                 ))}
               </div>
+
               {r.neighborhood && (
                 <p className="mt-1 text-sm text-neutral-600">
                   Neighbourhood&nbsp;•&nbsp;{r.neighborhood}
@@ -97,6 +127,3 @@ export default function Home() {
     </main>
   );
 }
-
-/* ---------- helpers ---------- */
-const uniq = arr => [...new Set(arr)];

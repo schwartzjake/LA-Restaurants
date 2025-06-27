@@ -1,84 +1,91 @@
-/**
- * Generic chip-style multi-select with optional autocomplete.
+/*
+ * MultiSelectFilter
+ * -----------------
+ * A generic chip-based multi-select with an autocomplete dropdown.
  *
  * Props
- * ──────────────────────────────
- * options     string[]          Full list to choose from
- * value       string[]          Currently-selected chips
- * onChange    (string[])        Lifted state setter
- * placeholder string           Input placeholder
+ *   options     string[]          // full list of possible options
+ *   value       string[]          // currently-selected chips
+ *   onChange    (string[]) => {}  // parent setter
+ *   placeholder string            // input placeholder (e.g. "Add cuisine…")
  */
+
 import { useState, useRef, useEffect } from 'react';
 
-export default function MultiSelectFilter({ options, value, onChange, placeholder }) {
-  const [open, setOpen]   = useState(false);
+export default function MultiSelectFilter({
+  options,
+  value,
+  onChange,
+  placeholder = 'Select…',
+}) {
+  /* ————— local state ————— */
   const [query, setQuery] = useState('');
+  const [open,  setOpen]  = useState(false);
   const boxRef = useRef(null);
 
-  // inside add() – closes after selecting an item
-add(item) {
-  onChange([...value, item]);
-  setQuery('');
-  setOpen(false);          // ← this closes it
-}
+  /* ————— close dropdown on outside click ————— */
+  useEffect(() => {
+    const handle = (e) => {
+      if (boxRef.current && !boxRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('click', handle);
+    return () => document.removeEventListener('click', handle);
+  }, []);
 
-// effect that closes dropdown when you click outside
-useEffect(() => {
-  const h = e => {
-    if (boxRef.current && !boxRef.current.contains(e.target)) setOpen(false);
-  };
-  document.addEventListener('click', h);
-  return () => document.removeEventListener('click', h);
-}, []);
-
-  /* list shown in dropdown */
+  /* ————— derived dropdown list ————— */
   const menu = options
-    .filter(o => o.toLowerCase().includes(query.toLowerCase()) && !value.includes(o));
+    .filter(
+      (o) =>
+        o.toLowerCase().includes(query.toLowerCase()) && !value.includes(o)
+    )
+    .sort();
 
-  /* event helpers */
-  const add    = item => { onChange([...value, item]); setQuery(''); };
-  const remove = item => onChange(value.filter(v => v !== item));
+  /* ————— helpers ————— */
+  const add    = (item) => { onChange([...value, item]); setQuery(''); };
+  const remove = (item) => onChange(value.filter((v) => v !== item));
 
+  /* ————— render ————— */
   return (
     <div ref={boxRef} className="relative w-full md:w-auto">
       {/* chips + input row */}
-      <div className="flex flex-wrap gap-2">
-        {value.map(item => (
-          <span key={item} onClick={() => remove(item)}
-                className="pill cursor-pointer">
+      <div className="flex flex-wrap items-center gap-2">
+        {value.map((item) => (
+          <span
+            key={item}
+            onClick={() => remove(item)}
+            title="Click to remove"
+            className="cursor-pointer rounded-full bg-emerald-100 px-2 py-0.5 text-sm text-emerald-900"
+          >
             {item} &times;
           </span>
         ))}
+
         <input
-          className="input flex-1 min-w-[120px]"
-          value={query}
+          className="min-w-[120px] flex-1 rounded border border-neutral-300 px-2 py-1 text-sm focus:border-emerald-500 focus:outline-none"
           placeholder={placeholder}
+          value={query}
           onFocus={() => setOpen(true)}
-          onChange={e => { setQuery(e.target.value); setOpen(true); }}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setOpen(true);
+          }}
         />
       </div>
 
       {/* dropdown */}
-      {{open && menu.length > 0 && (
-  <ul className="absolute z-50 mt-1 max-h-64 w-full overflow-y-auto rounded border border-neutral-300 bg-white shadow">
-    {menu.map(item => (
-      <li
-        key={item}
-        onClick={() => { add(item); setOpen(false); }}
-        className="cursor-pointer px-3 py-1 hover:bg-emerald-50"
-      >
-        {item}
-      </li>
-    ))}
-  </ul>
-)}
+      {open && menu.length > 0 && (
+        <ul className="absolute z-50 mt-1 max-h-64 w-full overflow-y-auto rounded border border-neutral-300 bg-white shadow">
+          {menu.map((item) => (
+            <li
+              key={item}
+              onClick={() => { add(item); setOpen(false); }}
+              className="cursor-pointer px-3 py-1 hover:bg-emerald-50"
+            >
+              {item}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
-
-/* Tailwind shortcuts (via @apply in globals.css or a module)
---------------------------------------------------------------
-.pill      { @apply rounded-full bg-emerald-100 px-2 py-0.5 text-sm text-emerald-900; }
-.input     { @apply rounded border border-neutral-300 px-2 py-1 text-sm focus:border-emerald-500 focus:outline-none; }
-.dropdown  { @apply absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded border border-neutral-300 bg-white shadow; }
-*/

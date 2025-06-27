@@ -1,25 +1,20 @@
 // Godly-style site with brutalist flair
-// Changes:
-// 1) Cuisine pills use #592025 background and #F2F2F2 text
-// 2) Neighbourhood text uses #73655D
-// 3) Cuisine and neighbourhood filters combine with OR logic
+// Geocodes restaurant addresses on demand using Nominatim (OpenStreetMap)
 
 import { useEffect, useState, useMemo } from 'react';
 import MultiSelectFilter from '../components/MultiSelectFilter';
 
-// OpenRouteService API key (set in .env as NEXT_PUBLIC_ORS_API_KEY)
 const ORS_KEY = process.env.NEXT_PUBLIC_ORS_API_KEY;
 
 export default function Home() {
   const [restaurants, setRestaurants] = useState([]);
   const [selCuisines, setSelCuisines] = useState([]);
-  const [selHoods,    setSelHoods]    = useState([]);
-  const [address, setAddress]         = useState('');
-  const [driveTimes, setDriveTimes]   = useState({});
-  const [loading, setLoading]         = useState(true);
-  const [error,   setError]           = useState(null);
+  const [selHoods, setSelHoods] = useState([]);
+  const [address, setAddress] = useState('');
+  const [driveTimes, setDriveTimes] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  /* ─── Fetch data ─── */
   useEffect(() => {
     fetch('/api/restaurants')
       .then(r => r.ok ? r.json() : Promise.reject(r.statusText))
@@ -28,65 +23,68 @@ export default function Home() {
       .finally(() => setLoading(false));
   }, []);
 
-  /* ─── Option lists ─── */
   const allCuisines = useMemo(() => [...new Set(restaurants.flatMap(r => r.cuisines || []))].sort(), [restaurants]);
-  const allHoods    = useMemo(() => [...new Set(restaurants.map(r => r.neighborhood).filter(Boolean))].sort(), [restaurants]);
+  const allHoods = useMemo(() => [...new Set(restaurants.map(r => r.neighborhood).filter(Boolean))].sort(), [restaurants]);
 
-  /* ─── Drive‑time fetch ─── */
-  const fetchDriveTimes = async () => {
-  console.log('Calculate clicked');                 // sanity ping
-  if (!address.trim() || !ORS_KEY) {
-    alert('Missing address or ORS key');
-    return;
+  // Geocode a single address
+  async function geocodeAddress(addr) {
+    const geo = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(addr)}`)
+      .then(r => r.json());
+    return geo[0] ? { lat: +geo[0].lat, lng: +geo[0].lon } : null;
   }
 
-  // 1. Geocode
-  const geo = await fetch(
-    `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`
-  ).then(r => r.json());
+  // Ensure all restaurants have lat/lng by geocoding their address
+  async function ensureCoords(rests) {
+    const updated = [...rests];
+    for (let i = 0; i < updated.length; i++) {
+      const r = updated[i];
+      if (Number.isFinite(r.latitude) && Number.isFinite(r.longitude)) continue;
+      if (!r.address) continue;
+      const geo = await geocodeAddress(r.address);
+      if (geo) {
+        r.latitude = geo.lat;
+        r.longitude = geo.lng;
+      }
+      await new Promise(res => setTimeout(res, 1100));
+    }
+    return updated;
+  }
 
-  if (!geo.length) { alert('Address not found'); return; }
-  const loc = { lat: +geo[0].lat, lng: +geo[0].lon };
+  const fetchDriveTimes = async () => {
+    if (!address.trim() || !ORS_KEY) return;
+    const origin = await geocodeAddress(address);
+    if (!origin) { alert('Address not found'); return; }
 
-  // 2. Filter restaurants with coords
-  const coords = restaurants.filter(r => r.latitude && r.longitude);
-  if (!coords.length) { alert('No restaurant coords'); return; }
+    const withCoords = await ensureCoords(restaurants);
+    const coords = withCoords.filter(r => Number.isFinite(r.latitude) && Number.isFinite(r.longitude));
+    if (!coords.length) { alert('No valid restaurant coordinates'); return; }
 
-  // 3. ORS Matrix
-  const body = JSON.stringify({
-    locations: [[loc.lng, loc.lat], ...coords.map(r => [r.longitude, r.latitude])],
-    metrics: ['duration'],
-    units: 'm'
-  });
+    const locations = [[origin.lng, origin.lat], ...coords.map(r => [r.longitude, r.latitude])];
+    const body = JSON.stringify({ locations, metrics: ['duration'], units: 'm' });
 
-  const orsRes = await fetch('https://api.openrouteservice.org/v2/matrix/driving-car', {
-    method: 'POST',
-    headers: { Authorization: ORS_KEY, 'Content-Type': 'application/json' },
-    body
-  }).then(r => r.json());
+    const orsRes = await fetch('https://api.openrouteservice.org/v2/matrix/driving-car', {
+      method: 'POST',
+      headers: { Authorization: ORS_KEY, 'Content-Type': 'application/json' },
+      body
+    }).then(r => r.json());
 
-  if (orsRes.error) { console.error(orsRes.error); alert(orsRes.error.message); return; }
+    if (orsRes.error) { console.error(orsRes.error); alert(orsRes.error.message); return; }
 
-  const durations = orsRes.durations?.[0] || [];
-  const map = {};
-  durations.slice(1).forEach((sec, i) => { map[coords[i].id] = sec; });
-  setDriveTimes(map);
-};
+    const durations = orsRes.durations?.[0] || [];
+    const map = {};
+    durations.slice(1).forEach((sec, i) => { map[coords[i].id] = sec; });
+    setDriveTimes(map);
+  };
 
-
-  /* ─── Filter + OR logic ─── */
   const filteredSorted = useMemo(() => {
     let list = restaurants;
-
-    // when at least one filter exists, keep items that match ANY selected cuisine OR neighbourhood
     if (selCuisines.length || selHoods.length) {
       list = list.filter(r => {
         const cuisineMatch = selCuisines.length && (r.cuisines || []).some(c => selCuisines.includes(c));
-        const hoodMatch    = selHoods.length && selHoods.includes(r.neighborhood);
+        const hoodMatch = selHoods.length && selHoods.includes(r.neighborhood);
         return cuisineMatch || hoodMatch;
       });
     }
-
     if (Object.keys(driveTimes).length) {
       list = [...list].sort((a, b) => (driveTimes[a.id] ?? 1e9) - (driveTimes[b.id] ?? 1e9));
     }
@@ -94,27 +92,26 @@ export default function Home() {
   }, [restaurants, selCuisines, selHoods, driveTimes]);
 
   const hasFilters = Boolean(selCuisines.length || selHoods.length);
-  const clearAll   = () => { setSelCuisines([]); setSelHoods([]); setDriveTimes({}); setAddress(''); };
+  const clearAll = () => { setSelCuisines([]); setSelHoods([]); setDriveTimes({}); setAddress(''); };
 
   return (
     <main className="min-h-screen bg-[#0D0D0D] px-6 py-12 text-[#F2F2F2] font-mono">
       <h1 className="text-5xl font-bold uppercase tracking-tight mb-10">L.A. Restaurant Recommendations</h1>
 
-      {/* Filter section */}
       <section className="sticky top-0 z-40 mb-10 bg-[#0D0D0D] border-t border-b border-[#3A3A3A] py-6">
         <div className="flex flex-col gap-5 md:flex-row md:items-center md:gap-8">
           <MultiSelectFilter
             options={allCuisines}
             value={selCuisines}
             onChange={setSelCuisines}
-            placeholder="Add cuisine…"
+            placeholder="Select Cuisine(s)"
             inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-[#3A3A3A] focus:border-white"
           />
           <MultiSelectFilter
             options={allHoods}
             value={selHoods}
             onChange={setSelHoods}
-            placeholder="Pick a neighbourhood"
+            placeholder="Neighborhood(s)"
             inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-[#3A3A3A] focus:border-white"
           />
           {hasFilters && (
@@ -122,7 +119,6 @@ export default function Home() {
           )}
         </div>
 
-        {/* Address input */}
         <div className="flex flex-col md:flex-row gap-4 mt-6">
           <input
             type="text"
@@ -145,7 +141,6 @@ export default function Home() {
         </p>
       </section>
 
-      {/* Restaurant cards */}
       {filteredSorted.length === 0 && !loading ? (
         <p className="text-gray-500">No restaurants match those filters.</p>
       ) : (

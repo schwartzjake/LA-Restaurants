@@ -1,14 +1,5 @@
-/*
- * MultiSelectFilter
- * -----------------
- * A generic chip-based multi-select with an autocomplete dropdown.
- *
- * Props
- *   options     string[]          // full list of possible options
- *   value       string[]          // currently-selected chips
- *   onChange    (string[]) => {}  // parent setter
- *   placeholder string            // input placeholder (e.g. "Add cuisine…")
- */
+// MultiSelectFilter – dropdown chips with explicit light dropdown styling
+// Used globally; default dropdown list is readable black-on-white.
 
 import { useState, useRef, useEffect } from 'react';
 
@@ -17,76 +8,64 @@ export default function MultiSelectFilter({
   value,
   onChange,
   placeholder = 'Select…',
+  inputClassName = '',
 }) {
-  /* ————— local state ————— */
   const [query, setQuery] = useState('');
   const [open,  setOpen]  = useState(false);
-  const boxRef = useRef(null);
+  const boxRef           = useRef(null);
 
-  /* ————— close dropdown on outside click ————— */
+  /* Close dropdown on outside click */
   useEffect(() => {
-    const handle = (e) => {
+    const h = e => {
       if (boxRef.current && !boxRef.current.contains(e.target)) setOpen(false);
     };
-    document.addEventListener('click', handle);
-    return () => document.removeEventListener('click', handle);
+    document.addEventListener('click', h);
+    return () => document.removeEventListener('click', h);
   }, []);
 
-  /* ————— derived dropdown list ————— */
   const menu = options
-    .filter(
-      (o) =>
-        o.toLowerCase().includes(query.toLowerCase()) && !value.includes(o)
-    )
+    .filter(o => o.toLowerCase().includes(query.toLowerCase()) && !value.includes(o))
     .sort();
 
-  /* ————— helpers ————— */
-  const add    = (item) => { onChange([...value, item]); setQuery(''); };
-  const remove = (item) => onChange(value.filter((v) => v !== item));
+  const add    = item => { onChange([...value, item]); setQuery(''); };
+  const remove = item => onChange(value.filter(v => v !== item));
 
-  /* ————— render ————— */
   return (
     <div ref={boxRef} className="relative w-full md:w-auto">
-      {/* chips + input row */}
+      {/* Chips + input */}
       <div className="flex flex-wrap items-center gap-2">
-        {value.map((item) => (
+        {value.map(item => (
           <span
             key={item}
             onClick={() => remove(item)}
-            title="Click to remove"
-            className="cursor-pointer rounded-full bg-emerald-100 px-2 py-0.5 text-sm text-emerald-900"
+            className="cursor-pointer bg-white text-black px-2 py-0.5 text-xs font-semibold uppercase"
           >
-            {item} &times;
+            {item} ×
           </span>
         ))}
-
         <input
-          className="min-w-[120px] flex-1 rounded border border-neutral-300 px-2 py-1 text-sm focus:border-emerald-500 focus:outline-none"
+          className={`min-w-[120px] flex-1 bg-transparent focus:outline-none ${inputClassName}`}
           placeholder={placeholder}
           value={query}
           onFocus={() => setOpen(true)}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setOpen(true);
-          }}
+          onChange={e => { setQuery(e.target.value); setOpen(true); }}
         />
       </div>
 
-      {/* dropdown */}
+      {/* Dropdown list */}
       {open && menu.length > 0 && (
-  <ul className="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto
-                 rounded border border-neutral-300 bg-white text-black shadow">
-    {menu.map(item => (
-      <li
-        key={item}
-        onClick={() => { add(item); setOpen(false); }}
-        className="cursor-pointer px-3 py-1 hover:bg-gray-200"
-      >
-        {item}
-      </li>
-    ))}
-  </ul>
-)}
+        <ul className="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded border border-gray-400 bg-white text-black shadow-lg">
+          {menu.map(item => (
+            <li
+              key={item}
+              onClick={() => { add(item); setOpen(false); }}
+              className="cursor-pointer px-3 py-1 hover:bg-gray-200 text-sm uppercase"
+            >
+              {item}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

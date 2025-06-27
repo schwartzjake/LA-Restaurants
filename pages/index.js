@@ -26,28 +26,11 @@ export default function Home() {
   const allCuisines = useMemo(() => [...new Set(restaurants.flatMap(r => r.cuisines || []))].sort(), [restaurants]);
   const allHoods = useMemo(() => [...new Set(restaurants.map(r => r.neighborhood).filter(Boolean))].sort(), [restaurants]);
 
-  // Geocode a single address
   async function geocodeAddress(addr) {
-    const geo = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(addr)}`)
-      .then(r => r.json());
+    const geo = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(addr)}`, {
+      headers: { 'User-Agent': 'MyRestaurantGeocoder/1.0 (email@example.com)' }
+    }).then(r => r.json());
     return geo[0] ? { lat: +geo[0].lat, lng: +geo[0].lon } : null;
-  }
-
-  // Ensure all restaurants have lat/lng by geocoding their address
-  async function ensureCoords(rests) {
-    const updated = [...rests];
-    for (let i = 0; i < updated.length; i++) {
-      const r = updated[i];
-      if (Number.isFinite(r.latitude) && Number.isFinite(r.longitude)) continue;
-      if (!r.address) continue;
-      const geo = await geocodeAddress(r.address);
-      if (geo) {
-        r.latitude = geo.lat;
-        r.longitude = geo.lng;
-      }
-      await new Promise(res => setTimeout(res, 1100));
-    }
-    return updated;
   }
 
   const fetchDriveTimes = async () => {
@@ -55,8 +38,7 @@ export default function Home() {
     const origin = await geocodeAddress(address);
     if (!origin) { alert('Address not found'); return; }
 
-    const withCoords = await ensureCoords(restaurants);
-    const coords = withCoords.filter(r => Number.isFinite(r.latitude) && Number.isFinite(r.longitude));
+    const coords = restaurants.filter(r => Number.isFinite(r.latitude) && Number.isFinite(r.longitude));
     if (!coords.length) { alert('No valid restaurant coordinates'); return; }
 
     const locations = [[origin.lng, origin.lat], ...coords.map(r => [r.longitude, r.latitude])];
@@ -104,14 +86,14 @@ export default function Home() {
             options={allCuisines}
             value={selCuisines}
             onChange={setSelCuisines}
-            placeholder="Select Cuisine(s)"
+            placeholder="Add cuisine…"
             inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-[#3A3A3A] focus:border-white"
           />
           <MultiSelectFilter
             options={allHoods}
             value={selHoods}
             onChange={setSelHoods}
-            placeholder="Neighborhood(s)"
+            placeholder="Pick a neighbourhood"
             inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-[#3A3A3A] focus:border-white"
           />
           {hasFilters && (
@@ -124,6 +106,7 @@ export default function Home() {
             type="text"
             value={address}
             onChange={e => setAddress(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') fetchDriveTimes(); }}
             placeholder="Enter your address to sort by drive time"
             className="w-full bg-transparent border border-[#3A3A3A] px-4 py-3 text-[#F2F2F2] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white"
           />

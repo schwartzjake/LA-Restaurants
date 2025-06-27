@@ -1,8 +1,9 @@
 // Godly-style site inspired by Fallen Grape — minimal, brutalist + playful
-// Replaces Bauhaus UI with clean, wide-spaced dark theme, brutal blocks, mono type
+// Ensures dropdown menus have readable black text
 
 import { useEffect, useState, useMemo } from 'react';
 import MultiSelectFilter from '../components/MultiSelectFilter';
+import '../styles/globals.css'; // Ensure global styles for dropdown are loaded
 
 const GMAPS_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY;
 
@@ -61,8 +62,22 @@ export default function Home() {
 
       <section className="sticky top-0 z-40 mb-10 bg-[#0F0F0F] border-t border-b border-gray-700 py-6">
         <div className="flex flex-col gap-5 md:flex-row md:items-center md:gap-8">
-          <MultiSelectFilter options={allCuisines} value={selCuisines} onChange={setSelCuisines} placeholder="Add cuisine…" inputClassName="bg-white text-black placeholder-gray-600 border-b border-gray-400 focus:border-black" />
-          <MultiSelectFilter options={allHoods} value={selHoods} onChange={setSelHoods} placeholder="Pick a neighbourhood" inputClassName="bg-white text-black placeholder-gray-600 border-b border-gray-400 focus:border-black" />
+          <MultiSelectFilter
+            options={allCuisines}
+            value={selCuisines}
+            onChange={setSelCuisines}
+            placeholder="Add cuisine…"
+            inputClassName="bg-white text-black placeholder-gray-600 border-b border-gray-400 focus:border-black"
+            dropdownClassName="bg-white text-black"
+          />
+          <MultiSelectFilter
+            options={allHoods}
+            value={selHoods}
+            onChange={setSelHoods}
+            placeholder="Pick a neighbourhood"
+            inputClassName="bg-white text-black placeholder-gray-600 border-b border-gray-400 focus:border-black"
+            dropdownClassName="bg-white text-black"
+          />
           {hasFilters && (
             <button onClick={clearAll} className="text-sm font-bold text-red-500 underline">Clear all</button>
           )}

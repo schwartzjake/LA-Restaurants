@@ -4,7 +4,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import MultiSelectFilter from '../components/MultiSelectFilter';
-import { XCircleIcon } from '@heroicons/react/24/outline';
+import { X } from 'lucide-react';
 
 const ORS_KEY = process.env.NEXT_PUBLIC_ORS_API_KEY;
 
@@ -146,7 +146,7 @@ export default function Home() {
           </button>
           {address.trim() && (
             <button onClick={clearAddress} className="text-red-500 hover:text-red-400">
-              <XCircleIcon className="w-6 h-6" />
+              <X className="w-6 h-6" />
             </button>
           )}
         </div>

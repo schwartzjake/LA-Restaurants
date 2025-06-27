@@ -126,14 +126,14 @@ export default function Home() {
           {filteredSorted.map(r => {
             const dur = driveTimes[r.id];
             return (
-              <li key={r.id} className="border border-[#2A2A2A] p-6 bg-[#40211E] hover:bg-[#292929] transition">
+              <li key={r.id} className="border border-[#2A2A2A] p-6 bg-[#73655D] hover:bg-[#292929] transition">
                 <h2 className="text-2xl font-bold uppercase mb-2 text-[#F2F2F2]">{r.name}</h2>
                 <div className="flex flex-wrap gap-2 mb-2">
                   {(r.cuisines || []).map(c => (
                     <span key={c} className="px-2 py-0.5 text-xs font-semibold uppercase" style={{ background: '#592025', color: '#F2F2F2' }}>{c}</span>
                   ))}
                 </div>
-                {r.neighborhood && <p className="text-xs" style={{ color: '#73655D' }}>{r.neighborhood}</p>}
+                {r.neighborhood && <p className="text-xs" style={{ color: '#40211E' }}>{r.neighborhood}</p>}
                 {dur && <p className="text-xs text-green-400 font-mono mt-1">Drive: {Math.round(dur / 60)} min</p>}
               </li>
             );

@@ -156,6 +156,38 @@ export default function Home() {
         </p>
       </section>
 
+{filteredSorted.length === 0 && !loading ? (
+  <p className="text-gray-500">No restaurants match those filters.</p>
+) : (
+  <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+    {filteredSorted.map(r => {
+      const dur = driveTimes[r.id];
+      let timeColor = 'text-green-400';
+      if (dur > 2100 && dur <= 3300) timeColor = 'text-yellow-400';
+      else if (dur > 3300) timeColor = 'text-red-500';
+
+      return (
+        <li key={r.id} className="border border-[#2A2A2A] p-6 bg-[#73655D] hover:bg-[#5E4F47] transition">
+          <h2 className="text-2xl font-bold uppercase mb-2 text-[#F2F2F2]">{r.name}</h2>
+          <div className="flex flex-wrap gap-2 mb-2">
+            {(r.cuisines || []).map(c => (
+              <span key={c} className="px-2 py-0.5 text-xs bg-[#592025] text-[#F2F2F2] font-semibold uppercase">{c}</span>
+            ))}
+          </div>
+          {r.neighborhood && (
+            <p className="text-sm font-semibold" style={{ color: '#40211E' }}>{r.neighborhood}</p>
+          )}
+          {dur && (
+            <p className={`text-xs mt-1 font-mono ${timeColor}`}>
+              Drive: {Math.round(dur / 60)} min
+            </p>
+          )}
+        </li>
+      );
+    })}
+  </ul>
+)}
+
       {/* results grid omitted for brevity */}
     </main>
   );

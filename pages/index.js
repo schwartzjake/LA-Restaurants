@@ -67,16 +67,16 @@ export default function Home() {
             value={selCuisines}
             onChange={setSelCuisines}
             placeholder="Add cuisine…"
-            inputClassName="bg-white text-black placeholder-gray-600 border-b border-gray-400 focus:border-black"
-            dropdownClassName="bg-white text-black"
+            inputClassName="bg-transparent text-white placeholder-gray-400 border-b border-gray-600 focus:border-white"
+           
           />
           <MultiSelectFilter
             options={allHoods}
             value={selHoods}
             onChange={setSelHoods}
             placeholder="Pick a neighbourhood"
-            inputClassName="bg-white text-black placeholder-gray-600 border-b border-gray-400 focus:border-black"
-            dropdownClassName="bg-white text-black"
+            inputClassName="bg-transparent text-white placeholder-gray-400 border-b border-gray-600 focus:border-white"
+           
           />
           {hasFilters && (
             <button onClick={clearAll} className="text-sm font-bold text-red-500 underline">Clear all</button>

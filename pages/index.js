@@ -4,7 +4,7 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import MultiSelectFilter from '../components/MultiSelectFilter';
-import { X } from 'lucide-react';
+// Removed external icon import; using inline SVG for the reset icon
 
 const ORS_KEY = process.env.NEXT_PUBLIC_ORS_API_KEY;
 
@@ -146,7 +146,7 @@ export default function Home() {
           </button>
           {address.trim() && (
             <button onClick={clearAddress} className="text-red-500 hover:text-red-400">
-              <X className="w-6 h-6" />
+              <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current" aria-hidden="true"><path d="M6 6l12 12M6 18L18 6"/></svg>
             </button>
           )}
         </div>

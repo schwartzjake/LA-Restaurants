@@ -1,6 +1,4 @@
-// MultiSelectFilter – dropdown chips with explicit light dropdown styling
-// Used globally; default dropdown list is readable black-on-white.
-
+// components/MultiSelectFilter.js
 import { useState, useRef, useEffect } from 'react';
 
 export default function MultiSelectFilter({
@@ -8,17 +6,15 @@ export default function MultiSelectFilter({
   value,
   onChange,
   placeholder = 'Select…',
-  inputClassName = '',
+  inputClassName = ''
 }) {
   const [query, setQuery] = useState('');
   const [open,  setOpen]  = useState(false);
   const boxRef           = useRef(null);
 
-  /* Close dropdown on outside click */
+  /* outside-click closes dropdown */
   useEffect(() => {
-    const h = e => {
-      if (boxRef.current && !boxRef.current.contains(e.target)) setOpen(false);
-    };
+    const h = e => { if (boxRef.current && !boxRef.current.contains(e.target)) setOpen(false); };
     document.addEventListener('click', h);
     return () => document.removeEventListener('click', h);
   }, []);
@@ -32,7 +28,7 @@ export default function MultiSelectFilter({
 
   return (
     <div ref={boxRef} className="relative w-full md:w-auto">
-      {/* Chips + input */}
+      {/* chips + input */}
       <div className="flex flex-wrap items-center gap-2">
         {value.map(item => (
           <span
@@ -40,9 +36,10 @@ export default function MultiSelectFilter({
             onClick={() => remove(item)}
             className="cursor-pointer bg-white text-black px-2 py-0.5 text-xs font-semibold uppercase"
           >
-            {item} ×
+            {item} &times;
           </span>
         ))}
+
         <input
           className={`min-w-[120px] flex-1 bg-transparent focus:outline-none ${inputClassName}`}
           placeholder={placeholder}
@@ -52,9 +49,10 @@ export default function MultiSelectFilter({
         />
       </div>
 
-      {/* Dropdown list */}
+      {/* dropdown list – always black-on-white */}
       {open && menu.length > 0 && (
-        <ul className="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded border border-gray-400 bg-white text-black shadow-lg">
+        <ul className="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto
+                       rounded border border-gray-400 bg-white text-black shadow-lg">
           {menu.map(item => (
             <li
               key={item}

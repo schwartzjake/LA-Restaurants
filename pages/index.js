@@ -126,7 +126,7 @@ export default function Home() {
           {filteredSorted.map(r => {
             const dur = driveTimes[r.id];
             return (
-              <li key={r.id} className="border border-[#2A2A2A] p-6 bg-[#1A1A1A] hover:bg-[#292929] transition">
+              <li key={r.id} className="border border-[#2A2A2A] p-6 bg-[#40211E] hover:bg-[#292929] transition">
                 <h2 className="text-2xl font-bold uppercase mb-2 text-[#F2F2F2]">{r.name}</h2>
                 <div className="flex flex-wrap gap-2 mb-2">
                   {(r.cuisines || []).map(c => (

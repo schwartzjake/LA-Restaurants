@@ -1,5 +1,5 @@
-// Tailwind-based Apple-style glassmorphism UI
-// This component replaces the main filter + card layout in your Next.js site
+// Tailwind-based Bauhaus-style clean UI
+// Swaps out glassmorphism for flat color blocks and bold modernist contrast
 
 import { useEffect, useState, useMemo } from 'react';
 import MultiSelectFilter from '../components/MultiSelectFilter';
@@ -41,36 +41,36 @@ export default function Home() {
   const hasFilters = Boolean(selCuisines.length || selHoods.length);
 
   return (
-    <main className="relative min-h-screen bg-gradient-to-br from-slate-900 via-gray-800 to-gray-900 px-4 py-8 text-white">
-      <h1 className="mb-6 text-4xl font-bold text-white drop-shadow-md">L.A. Restaurant Recommendations</h1>
+    <main className="relative min-h-screen bg-yellow-100 px-4 py-8 text-black">
+      <h1 className="mb-6 text-4xl font-bold text-blue-900">L.A. Restaurant Recommendations</h1>
 
-      {/* Glassy Filter Bar */}
-      <section className="sticky top-0 z-30 mb-8 rounded-xl border border-white/10 bg-white/10 p-6 backdrop-blur-md shadow-xl">
+      {/* Bauhaus Filter Bar */}
+      <section className="sticky top-0 z-30 mb-8 rounded-lg border border-gray-300 bg-white p-6 shadow-md">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-6">
           <MultiSelectFilter
             options={allCuisines}
             value={selCuisines}
             onChange={setSelCuisines}
             placeholder="Add cuisine…"
-            inputClassName="text-white placeholder-white"
+            inputClassName="text-black placeholder-gray-500"
           />
           <MultiSelectFilter
             options={allHoods}
             value={selHoods}
             onChange={setSelHoods}
             placeholder="Pick a neighbourhood"
-            inputClassName="text-white placeholder-white"
+            inputClassName="text-black placeholder-gray-500"
           />
           {hasFilters && (
             <button
               onClick={clearAll}
-              className="ml-auto text-sm font-semibold text-rose-300 hover:underline"
+              className="ml-auto text-sm font-semibold text-red-600 hover:underline"
             >
               Clear all
             </button>
           )}
         </div>
-        <p className="mt-3 text-sm text-white/70">
+        <p className="mt-3 text-sm text-gray-600">
           {loading
             ? 'Loading…'
             : error
@@ -81,27 +81,27 @@ export default function Home() {
 
       {/* Card list */}
       {filtered.length === 0 && !loading ? (
-        <p className="text-white/70">No restaurants match those filters.</p>
+        <p className="text-gray-600">No restaurants match those filters.</p>
       ) : (
         <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map(r => (
             <li
               key={r.id}
-              className="rounded-xl border border-white/10 bg-white/5 p-5 shadow-lg backdrop-blur-md hover:bg-white/10 transition"
+              className="rounded-lg border border-gray-300 bg-white p-5 shadow-md hover:bg-gray-50 transition"
             >
-              <h2 className="text-xl font-semibold text-white drop-shadow-sm">{r.name}</h2>
+              <h2 className="text-xl font-semibold text-blue-800">{r.name}</h2>
               <div className="mt-2 flex flex-wrap gap-2">
                 {(r.cuisines || []).map(c => (
                   <span
                     key={c}
-                    className="rounded-full bg-emerald-200/20 px-2 py-0.5 text-sm text-emerald-100"
+                    className="rounded-full bg-red-100 px-2 py-0.5 text-sm text-red-800"
                   >
                     {c}
                   </span>
                 ))}
               </div>
               {r.neighborhood && (
-                <p className="mt-2 text-sm text-white/60">
+                <p className="mt-2 text-sm text-gray-700">
                   Neighbourhood • {r.neighborhood}
                 </p>
               )}

@@ -61,8 +61,8 @@ export default function Home() {
 
       <section className="sticky top-0 z-40 mb-10 bg-[#0F0F0F] border-t border-b border-gray-700 py-6">
         <div className="flex flex-col gap-5 md:flex-row md:items-center md:gap-8">
-          <MultiSelectFilter options={allCuisines} value={selCuisines} onChange={setSelCuisines} placeholder="Add cuisine…" inputClassName="bg-transparent text-white placeholder-gray-400 border-b border-gray-600 focus:border-white" />
-          <MultiSelectFilter options={allHoods} value={selHoods} onChange={setSelHoods} placeholder="Pick a neighbourhood" inputClassName="bg-transparent text-white placeholder-gray-400 border-b border-gray-600 focus:border-white" />
+          <MultiSelectFilter options={allCuisines} value={selCuisines} onChange={setSelCuisines} placeholder="Add cuisine…" inputClassName="bg-white text-black placeholder-gray-600 border-b border-gray-400 focus:border-black" />
+          <MultiSelectFilter options={allHoods} value={selHoods} onChange={setSelHoods} placeholder="Pick a neighbourhood" inputClassName="bg-white text-black placeholder-gray-600 border-b border-gray-400 focus:border-black" />
           {hasFilters && (
             <button onClick={clearAll} className="text-sm font-bold text-red-500 underline">Clear all</button>
           )}

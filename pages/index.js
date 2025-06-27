@@ -41,36 +41,36 @@ export default function Home() {
   const hasFilters = Boolean(selCuisines.length || selHoods.length);
 
   return (
-    <main className="relative min-h-screen bg-yellow-100 px-4 py-8 text-black">
-      <h1 className="mb-6 text-4xl font-bold text-blue-900">L.A. Restaurant Recommendations</h1>
+    <main className="relative min-h-screen bg-yellow-100 px-4 py-8 text-black font-sans">
+      <h1 className="mb-6 text-4xl font-extrabold text-blue-900 tracking-tight uppercase">L.A. Restaurant Recommendations</h1>
 
       {/* Bauhaus Filter Bar */}
-      <section className="sticky top-0 z-30 mb-8 rounded-lg border border-gray-300 bg-white p-6 shadow-md">
+      <section className="sticky top-0 z-30 mb-8 rounded-lg border-4 border-black bg-yellow-50 p-6 shadow-md">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-6">
           <MultiSelectFilter
             options={allCuisines}
             value={selCuisines}
             onChange={setSelCuisines}
             placeholder="Add cuisine…"
-            inputClassName="text-black placeholder-gray-500"
+            inputClassName="text-black placeholder-gray-500 border-b-2 border-red-600 focus:border-red-800"
           />
           <MultiSelectFilter
             options={allHoods}
             value={selHoods}
             onChange={setSelHoods}
             placeholder="Pick a neighbourhood"
-            inputClassName="text-black placeholder-gray-500"
+            inputClassName="text-black placeholder-gray-500 border-b-2 border-blue-600 focus:border-blue-800"
           />
           {hasFilters && (
             <button
               onClick={clearAll}
-              className="ml-auto text-sm font-semibold text-red-600 hover:underline"
+              className="ml-auto text-sm font-bold text-white bg-red-600 hover:bg-red-700 px-3 py-1 rounded"
             >
               Clear all
             </button>
           )}
         </div>
-        <p className="mt-3 text-sm text-gray-600">
+        <p className="mt-3 text-sm text-gray-800 font-medium">
           {loading
             ? 'Loading…'
             : error
@@ -81,28 +81,28 @@ export default function Home() {
 
       {/* Card list */}
       {filtered.length === 0 && !loading ? (
-        <p className="text-gray-600">No restaurants match those filters.</p>
+        <p className="text-gray-800">No restaurants match those filters.</p>
       ) : (
         <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map(r => (
             <li
               key={r.id}
-              className="rounded-lg border border-gray-300 bg-white p-5 shadow-md hover:bg-gray-50 transition"
+              className="rounded-lg border-4 border-black bg-white p-5 shadow-md hover:bg-gray-100 transition flex flex-col justify-between"
             >
-              <h2 className="text-xl font-semibold text-blue-800">{r.name}</h2>
-              <div className="mt-2 flex flex-wrap gap-2">
+              <h2 className="text-xl font-extrabold text-blue-900 uppercase tracking-wide mb-2">{r.name}</h2>
+              <div className="flex flex-wrap gap-2 mb-2">
                 {(r.cuisines || []).map(c => (
                   <span
                     key={c}
-                    className="rounded-full bg-red-100 px-2 py-0.5 text-sm text-red-800"
+                    className="rounded-full bg-red-500 text-white px-3 py-1 text-xs font-bold uppercase"
                   >
                     {c}
                   </span>
                 ))}
               </div>
               {r.neighborhood && (
-                <p className="mt-2 text-sm text-gray-700">
-                  Neighbourhood • {r.neighborhood}
+                <p className="mt-auto text-sm text-gray-700 font-semibold">
+                  Neighbourhood: {r.neighborhood}
                 </p>
               )}
             </li>

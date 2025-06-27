@@ -70,25 +70,25 @@ export default function Home() {
   const clearAll   = () => { setSelCuisines([]); setSelHoods([]); setDriveTimes({}); setAddress(''); };
 
   return (
-    <main className="min-h-screen bg-[#0F0F0F] px-6 py-12 text-white font-mono">
+    <main className="min-h-screen bg-[#0D0D0D] px-6 py-12 text-[#F2F2F2] font-mono">
       <h1 className="text-5xl font-bold uppercase tracking-tight mb-10">L.A. Restaurant Recommendations</h1>
 
       {/* Filter section */}
-      <section className="sticky top-0 z-40 mb-10 bg-[#0F0F0F] border-t border-b border-gray-700 py-6">
+      <section className="sticky top-0 z-40 mb-10 bg-[#0D0D0D] border-t border-b border-[#3A3A3A] py-6">
         <div className="flex flex-col gap-5 md:flex-row md:items-center md:gap-8">
           <MultiSelectFilter
             options={allCuisines}
             value={selCuisines}
             onChange={setSelCuisines}
             placeholder="Add cuisine…"
-            inputClassName="bg-transparent text-white placeholder-gray-400 border-b border-gray-600 focus:border-white"
+            inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-[#3A3A3A] focus:border-white"
           />
           <MultiSelectFilter
             options={allHoods}
             value={selHoods}
             onChange={setSelHoods}
             placeholder="Pick a neighbourhood"
-            inputClassName="bg-transparent text-white placeholder-gray-400 border-b border-gray-600 focus:border-white"
+            inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-[#3A3A3A] focus:border-white"
           />
           {hasFilters && (
             <button onClick={clearAll} className="text-sm font-bold text-red-500 underline">Clear all</button>
@@ -102,12 +102,12 @@ export default function Home() {
             value={address}
             onChange={e => setAddress(e.target.value)}
             placeholder="Enter your address to sort by drive time"
-            className="w-full bg-transparent border border-gray-700 px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white"
+            className="w-full bg-transparent border border-[#3A3A3A] px-4 py-3 text-[#F2F2F2] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white"
           />
           <button
             onClick={fetchDriveTimes}
             disabled={!address.trim() || loading}
-            className="bg-white text-black font-bold px-6 py-3 uppercase text-sm tracking-wide hover:bg-gray-200 disabled:opacity-30"
+            className="bg-white text-black font-bold px-6 py-3 uppercase text-sm tracking-wide hover:bg-[#3A3A3A] disabled:opacity-30"
           >
             Calculate
           </button>
@@ -126,8 +126,8 @@ export default function Home() {
           {filteredSorted.map(r => {
             const dur = driveTimes[r.id];
             return (
-              <li key={r.id} className="border border-gray-800 p-6 bg-[#1A1A1A] hover:bg-[#222] transition">
-                <h2 className="text-2xl font-bold uppercase mb-2 text-white">{r.name}</h2>
+              <li key={r.id} className="border border-[#2A2A2A] p-6 bg-[#1A1A1A] hover:bg-[#292929] transition">
+                <h2 className="text-2xl font-bold uppercase mb-2 text-[#F2F2F2]">{r.name}</h2>
                 <div className="flex flex-wrap gap-2 mb-2">
                   {(r.cuisines || []).map(c => (
                     <span key={c} className="px-2 py-0.5 text-xs font-semibold uppercase" style={{ background: '#592025', color: '#F2F2F2' }}>{c}</span>

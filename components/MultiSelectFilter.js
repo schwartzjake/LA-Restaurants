@@ -74,18 +74,19 @@ export default function MultiSelectFilter({
 
       {/* dropdown */}
       {open && menu.length > 0 && (
-        <ul className="absolute z-50 mt-1 max-h-64 w-full overflow-y-auto rounded border border-neutral-300 bg-white shadow">
-          {menu.map((item) => (
-            <li
-              key={item}
-              onClick={() => { add(item); setOpen(false); }}
-              className="cursor-pointer px-3 py-1 hover:bg-emerald-50"
-            >
-              {item}
-            </li>
-          ))}
-        </ul>
-      )}
+  <ul className="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto
+                 rounded border border-neutral-300 bg-white text-black shadow">
+    {menu.map(item => (
+      <li
+        key={item}
+        onClick={() => { add(item); setOpen(false); }}
+        className="cursor-pointer px-3 py-1 hover:bg-gray-200"
+      >
+        {item}
+      </li>
+    ))}
+  </ul>
+)}
     </div>
   );
 }

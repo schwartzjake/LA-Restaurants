@@ -10,7 +10,7 @@ export default function Home() {
   const [restaurants, setRestaurants] = useState([]);
   const [selCuisines, setSelCuisines] = useState([]);
   const [selHoods, setSelHoods] = useState([]);
-  const [address, setAddress] = useState('');
+  const [address, setAddress] = useState('''');
   const [driveTimes, setDriveTimes] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -32,46 +32,48 @@ export default function Home() {
     }).then(r => r.json());
     return geo[0] ? { lat: +geo[0].lat, lng: +geo[0].lon } : null;
   }
-  
-const fetchDriveTimes = async () => {
-  if (!address.trim() || !ORS_KEY) return;
-  const origin = await geocodeAddress(address);
-  if (!origin) { alert('Address not found'); return; }
 
-  const coords = restaurants.filter(r => Number.isFinite(r.latitude) && Number.isFinite(r.longitude));
-  if (!coords.length) { alert('No valid restaurant coordinates'); return; }
+  const fetchDriveTimes = async () => {
+    if (!address.trim() || !ORS_KEY) return;
+    const origin = await geocodeAddress(address);
+    if (!origin) { alert('Address not found'); return; }
 
-  const CHUNK_SIZE = 100; // max destinations per call
-  const chunks = Array.from({ length: Math.ceil(coords.length / CHUNK_SIZE) }, (_, i) =>
-    coords.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE)
-  );
+    const coords = restaurants.filter(r => Number.isFinite(r.latitude) && Number.isFinite(r.longitude));
+    if (!coords.length) { alert('No valid restaurant coordinates'); return; }
 
-  const allDurations = {};
-  for (const chunk of chunks) {
-    const locations = [[origin.lng, origin.lat], ...chunk.map(r => [r.longitude, r.latitude])];
-    const body = JSON.stringify({ locations, metrics: ['duration'], units: 'm' });
+    const CHUNK_SIZE = 50; // reduce per-request size to stay well under 3500-route ORS limit
+    const chunks = Array.from({ length: Math.ceil(coords.length / CHUNK_SIZE) }, (_, i) =>
+      coords.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE)
+    );
 
-    const res = await fetch('https://api.openrouteservice.org/v2/matrix/driving-car', {
-      method: 'POST',
-      headers: { Authorization: ORS_KEY, 'Content-Type': 'application/json' },
-      body
-    }).then(r => r.json());
+    const allDurations = {};
+    for (const chunk of chunks) {
+      const locations = [[origin.lng, origin.lat], ...chunk.map(r => [r.longitude, r.latitude])];
+      const body = JSON.stringify({ locations, metrics: ['duration'], units: 'm' });
 
-    if (res.error) {
-      console.error(res.error);
-      alert(res.error.message);
-      return;
+      const res = await fetch('https://api.openrouteservice.org/v2/matrix/driving-car', {
+        method: 'POST',
+        headers: { Authorization: ORS_KEY, 'Content-Type': 'application/json' },
+        body
+      }).then(r => r.json());
+
+      if (res.error) {
+        console.error(res.error);
+        alert(res.error.message);
+        return;
+      }
+
+      const durations = res.durations?.[0] || [];
+      durations.slice(1).forEach((sec, i) => {
+        allDurations[chunk[i].id] = sec;
+      });
+
+      // delay to avoid rate limit issues
+      await new Promise(res => setTimeout(res, 750));
     }
 
-    const durations = res.durations?.[0] || [];
-    durations.slice(1).forEach((sec, i) => {
-      allDurations[chunk[i].id] = sec;
-    });
-  }
-
-  setDriveTimes(allDurations);
-};
-
+    setDriveTimes(allDurations);
+  };
 
   const filteredSorted = useMemo(() => {
     let list = restaurants;

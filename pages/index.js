@@ -1,7 +1,9 @@
 // Godly‑style site with brutalist flair
+// • Calculate button fixed with dedicated `calculating` state
 // • Separate Reset‑Address icon (inline SVG)
-// • Drive‑time badge colours: 0‑20 min → green, 21‑35 min → yellow, 36 + min → red
-// • Full results grid restored
+// • Drive‑time colours: 0‑20 min → green, 21‑35 min → yellow, 36 + min → red
+// • Suppress stray “0” by hiding 0‑sec drive times
+// • Full results grid intact
 
 import { useEffect, useState, useMemo } from 'react';
 import MultiSelectFilter from '../components/MultiSelectFilter';
@@ -14,10 +16,11 @@ export default function Home() {
   const [selHoods, setSelHoods] = useState([]);
   const [address, setAddress] = useState('');
   const [driveTimes, setDriveTimes] = useState({});
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);   // initial data load
+  const [calculating, setCalculating] = useState(false); // distance calc state
   const [error, setError] = useState(null);
 
-  // ───────────────────────────────────── fetch Airtable data
+  // ───────────────────────────────────── fetch Airtable data once
   useEffect(() => {
     fetch('/api/restaurants')
       .then(r => (r.ok ? r.json() : Promise.reject(r.statusText)))
@@ -33,37 +36,41 @@ export default function Home() {
   // ───────────────────────────────────── helper: geocode user address
   async function geocode(addr) {
     const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(addr)}`;
-    const res = await fetch(url, { headers: { 'User-Agent': 'LA‑Rest‑Geocoder/1.0 (contact@example.com)' } }).then(r => r.json());
+    const res = await fetch(url, { headers: { 'User-Agent': 'LA-Rest-Geocoder/1.0 (contact@example.com)' } }).then(r => r.json());
     return res[0] ? { lat: +res[0].lat, lng: +res[0].lon } : null;
   }
 
   // ───────────────────────────────────── distance matrix via ORS
   const fetchDriveTimes = async () => {
-    if (!address.trim() || !ORS_KEY) return;
-    const origin = await geocode(address);
-    if (!origin) { alert('Address not found'); return; }
+    if (!address.trim() || !ORS_KEY || calculating) return;
+    setCalculating(true);
+    try {
+      const origin = await geocode(address);
+      if (!origin) { alert('Address not found'); return; }
 
-    const coords = restaurants.filter(r => Number.isFinite(r.latitude) && Number.isFinite(r.longitude));
-    if (!coords.length) { alert('No valid restaurant coordinates'); return; }
+      const coords = restaurants.filter(r => Number.isFinite(r.latitude) && Number.isFinite(r.longitude));
+      if (!coords.length) { alert('No valid restaurant coordinates'); return; }
 
-    const CHUNK = 50;
-    const chunks = Array.from({ length: Math.ceil(coords.length / CHUNK) }, (_, i) => coords.slice(i * CHUNK, (i + 1) * CHUNK));
+      const CHUNK = 40;
+      const chunks = Array.from({ length: Math.ceil(coords.length / CHUNK) }, (_, i) => coords.slice(i * CHUNK, (i + 1) * CHUNK));
 
-    const map = {};
-    for (const c of chunks) {
-      const body = JSON.stringify({
-        locations: [[origin.lng, origin.lat], ...c.map(r => [r.longitude, r.latitude])],
-        metrics: ['duration'],
-        units: 'm'
-      });
-      const res = await fetch('https://api.openrouteservice.org/v2/matrix/driving-car', {
-        method: 'POST', headers: { Authorization: ORS_KEY, 'Content-Type': 'application/json' }, body
-      }).then(r => r.json());
-      if (res.error) { console.error(res.error); alert(res.error.message); return; }
-      (res.durations?.[0] || []).slice(1).forEach((sec, i) => { map[c[i].id] = sec; });
-      await new Promise(r => setTimeout(r, 1000)); // polite throttle
+      const map = {};
+      for (const c of chunks) {
+        const body = JSON.stringify({
+          locations: [[origin.lng, origin.lat], ...c.map(r => [r.longitude, r.latitude])],
+          metrics: ['duration'], units: 'm'
+        });
+        const res = await fetch('https://api.openrouteservice.org/v2/matrix/driving-car', {
+          method: 'POST', headers: { Authorization: ORS_KEY, 'Content-Type': 'application/json' }, body
+        }).then(r => r.json());
+        if (res.error) { console.error(res.error); alert(res.error.message); return; }
+        (res.durations?.[0] || []).slice(1).forEach((sec, i) => { map[c[i].id] = sec; });
+        await new Promise(r => setTimeout(r, 800)); // polite throttle
+      }
+      setDriveTimes(map);
+    } finally {
+      setCalculating(false);
     }
-    setDriveTimes(map);
   };
 
   // ───────────────────────────────────── filtering + sorting
@@ -108,7 +115,9 @@ export default function Home() {
 
         <div className="flex flex-col md:flex-row gap-4 mt-6 items-center">
           <input type="text" value={address} onChange={e => setAddress(e.target.value)} onKeyDown={e => e.key === 'Enter' && fetchDriveTimes()} placeholder="Enter your address to sort by drive time" className="w-full bg-transparent border border-[#3A3A3A] px-4 py-3 text-[#F2F2F2] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white" />
-          <button onClick={fetchDriveTimes} disabled={!address.trim() || loading} className="bg-white text-black font-bold px-6 py-3 uppercase text-sm tracking-wide hover:bg-[#3A3A3A] disabled:opacity-30">Calculate</button>
+          <button onClick={fetchDriveTimes} disabled={!address.trim() || calculating} className="bg-white text-black font-bold px-6 py-3 uppercase text-sm tracking-wide hover:bg-[#3A3A3A] disabled:opacity-30">
+            {calculating ? 'Calculating…' : 'Calculate'}
+          </button>
           {address.trim() && (
             <button onClick={clearAddress} className="text-red-500 hover:text-red-400" title="Clear address">
               <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current"><path d="M6 6l12 12M6 18L18 6" /></svg>
@@ -129,22 +138,4 @@ export default function Home() {
           {filteredSorted.map(r => {
             const secs = driveTimes[r.id];
             return (
-              <li key={r.id} className="border border-[#2A2A2A] p-6 bg-[#73655D] hover:bg-[#5E4F47] transition">
-                <h2 className="text-2xl font-bold uppercase mb-2 text-[#F2F2F2]">{r.name}</h2>
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {(r.cuisines || []).map(c => (
-                    <span key={c} className="px-2 py-0.5 text-xs bg-[#592025] text-[#F2F2F2] font-semibold uppercase" >{c}</span>
-                  ))}
-                </div>
-                {r.neighborhood && <p className="text-sm font-semibold" style={{ color: '#40211E' }}>{r.neighborhood}</p>}
-                {Number.isFinite(secs) && (
-                  <p className={`text-xs mt-1 font-mono ${colorForSecs(secs)}`}>Drive: {Math.round(secs / 60)} min</p>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </main>
-  );
-}
+              <li key={

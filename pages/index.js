@@ -32,31 +32,46 @@ export default function Home() {
     }).then(r => r.json());
     return geo[0] ? { lat: +geo[0].lat, lng: +geo[0].lon } : null;
   }
+  
+const fetchDriveTimes = async () => {
+  if (!address.trim() || !ORS_KEY) return;
+  const origin = await geocodeAddress(address);
+  if (!origin) { alert('Address not found'); return; }
 
-  const fetchDriveTimes = async () => {
-    if (!address.trim() || !ORS_KEY) return;
-    const origin = await geocodeAddress(address);
-    if (!origin) { alert('Address not found'); return; }
+  const coords = restaurants.filter(r => Number.isFinite(r.latitude) && Number.isFinite(r.longitude));
+  if (!coords.length) { alert('No valid restaurant coordinates'); return; }
 
-    const coords = restaurants.filter(r => Number.isFinite(r.latitude) && Number.isFinite(r.longitude));
-    if (!coords.length) { alert('No valid restaurant coordinates'); return; }
+  const CHUNK_SIZE = 100; // max destinations per call
+  const chunks = Array.from({ length: Math.ceil(coords.length / CHUNK_SIZE) }, (_, i) =>
+    coords.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE)
+  );
 
-    const locations = [[origin.lng, origin.lat], ...coords.map(r => [r.longitude, r.latitude])];
+  const allDurations = {};
+  for (const chunk of chunks) {
+    const locations = [[origin.lng, origin.lat], ...chunk.map(r => [r.longitude, r.latitude])];
     const body = JSON.stringify({ locations, metrics: ['duration'], units: 'm' });
 
-    const orsRes = await fetch('https://api.openrouteservice.org/v2/matrix/driving-car', {
+    const res = await fetch('https://api.openrouteservice.org/v2/matrix/driving-car', {
       method: 'POST',
       headers: { Authorization: ORS_KEY, 'Content-Type': 'application/json' },
       body
     }).then(r => r.json());
 
-    if (orsRes.error) { console.error(orsRes.error); alert(orsRes.error.message); return; }
+    if (res.error) {
+      console.error(res.error);
+      alert(res.error.message);
+      return;
+    }
 
-    const durations = orsRes.durations?.[0] || [];
-    const map = {};
-    durations.slice(1).forEach((sec, i) => { map[coords[i].id] = sec; });
-    setDriveTimes(map);
-  };
+    const durations = res.durations?.[0] || [];
+    durations.slice(1).forEach((sec, i) => {
+      allDurations[chunk[i].id] = sec;
+    });
+  }
+
+  setDriveTimes(allDurations);
+};
+
 
   const filteredSorted = useMemo(() => {
     let list = restaurants;

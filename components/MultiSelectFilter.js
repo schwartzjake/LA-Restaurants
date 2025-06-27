@@ -15,12 +15,21 @@ export default function MultiSelectFilter({ options, value, onChange, placeholde
   const [query, setQuery] = useState('');
   const boxRef = useRef(null);
 
-  /* close dropdown on outside click */
-  useEffect(() => {
-    const h = e => { if (boxRef.current && !boxRef.current.contains(e.target)) setOpen(false); };
-    document.addEventListener('click', h);
-    return () => document.removeEventListener('click', h);
-  }, []);
+  // inside add() – closes after selecting an item
+add(item) {
+  onChange([...value, item]);
+  setQuery('');
+  setOpen(false);          // ← this closes it
+}
+
+// effect that closes dropdown when you click outside
+useEffect(() => {
+  const h = e => {
+    if (boxRef.current && !boxRef.current.contains(e.target)) setOpen(false);
+  };
+  document.addEventListener('click', h);
+  return () => document.removeEventListener('click', h);
+}, []);
 
   /* list shown in dropdown */
   const menu = options
@@ -50,7 +59,7 @@ export default function MultiSelectFilter({ options, value, onChange, placeholde
       </div>
 
       {/* dropdown */}
-      {menu.length > 0 && (
+      {{open && menu.length > 0 && (
   <ul className="absolute z-50 mt-1 max-h-64 w-full overflow-y-auto rounded border border-neutral-300 bg-white shadow">
     {menu.map(item => (
       <li

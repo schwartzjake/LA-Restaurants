@@ -1,9 +1,6 @@
-// pages/index.js – Complete & Fixed
-// Brutalist “glass” UI with filters + distance sort
-// • Drive‑time badge colours: green 0‑20, yellow 21‑35, red 36+ min
-// • Separate Reset‑Address icon (inline SVG)
-// • Calculate guarded by calculating flag
-// • Removes stray “0” by rendering filters only when options ready
+// pages/index.js – Adds full‑screen spinner while drive times calculate
+// Spinner appears over content when `calculating` is true.
+// Card layout & logic unchanged.
 
 import { useEffect, useMemo, useState } from 'react'
 import MultiSelectFilter from '../components/MultiSelectFilter'
@@ -12,7 +9,6 @@ import RestaurantGrid from '../components/RestaurantGrid'
 const ORS_KEY = process.env.NEXT_PUBLIC_ORS_API_KEY
 
 export default function Home() {
-  // ─── state
   const [restaurants, setRestaurants] = useState([])
   const [selCuisines, setSelCuisines] = useState([])
   const [selHoods, setSelHoods] = useState([])
@@ -22,6 +18,7 @@ export default function Home() {
   const [calculating, setCalculating] = useState(false)
   const [error, setError] = useState(null)
 
+  /* ─── initial data fetch */
   useEffect(() => {
     fetch('/api/restaurants')
       .then(r => (r.ok ? r.json() : Promise.reject(r.statusText)))
@@ -33,6 +30,7 @@ export default function Home() {
   const allCuisines = useMemo(() => [...new Set(restaurants.flatMap(r => r.cuisines || []))].sort(), [restaurants])
   const allHoods = useMemo(() => [...new Set(restaurants.map(r => r.neighborhood).filter(Boolean))].sort(), [restaurants])
 
+  /* ─── helpers */
   const geocode = async addr => {
     const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(addr)}`, {
       headers: { 'User-Agent': 'la-rest/1.0 (contact@example.com)' }
@@ -41,6 +39,7 @@ export default function Home() {
   }
   const badge = s => (s <= 1200 ? 'text-green-400' : s <= 2100 ? 'text-yellow-400' : 'text-red-500')
 
+  /* ─── distance matrix */
   const fetchDriveTimes = async () => {
     if (!address.trim() || !ORS_KEY || calculating) return
     setCalculating(true)
@@ -66,6 +65,7 @@ export default function Home() {
     }
   }
 
+  /* ─── filter + sort */
   const filtered = useMemo(() => {
     let list = restaurants
     if (selCuisines.length || selHoods.length) {
@@ -82,9 +82,20 @@ export default function Home() {
   const clearAddress = () => { setAddress(''); setDriveTimes({}) }
 
   return (
-    <main className="min-h-screen bg-[#0D0D0D] px-6 py-12 text-[#F2F2F2] font-mono">
+    <main className="relative min-h-screen bg-[#0D0D0D] px-6 py-12 text-[#F2F2F2] font-mono">
+      {/* full‑screen spinner overlay */}
+      {calculating && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <svg className="h-12 w-12 animate-spin text-[#F2F2F2]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+          </svg>
+        </div>
+      )}
+
       <h1 className="text-5xl font-bold uppercase tracking-tight mb-10">L.A. Restaurant Recommendations</h1>
 
+      {/* Filter & address bar */}
       <section className="sticky top-0 z-40 mb-10 bg-[#0D0D0D] border-y border-[#3A3A3A] py-6">
         <div className="flex flex-col gap-5 md:flex-row md:items-center md:gap-8">
           {allCuisines.length > 0 && (
@@ -109,12 +120,8 @@ export default function Home() {
         <p className="mt-4 text-xs text-gray-400">{loading ? 'Loading…' : error ? 'Error loading restaurants.' : `Showing ${filtered.length} restaurant${filtered.length === 1 ? '' : 's'}`}</p>
       </section>
 
-      <RestaurantGrid
-  list={filtered}
-  driveTimes={driveTimes}
-  badge={badge}
-  calculating={calculating}
-/>
+      {/* Results grid */}
+      <RestaurantGrid list={filtered} driveTimes={driveTimes} badge={badge} />
     </main>
   )
 }

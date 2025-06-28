@@ -109,7 +109,12 @@ export default function Home() {
         <p className="mt-4 text-xs text-gray-400">{loading ? 'Loading…' : error ? 'Error loading restaurants.' : `Showing ${filtered.length} restaurant${filtered.length === 1 ? '' : 's'}`}</p>
       </section>
 
-      <RestaurantGrid list={filtered} driveTimes={driveTimes} badge={badge} />
+      <RestaurantGrid
+  list={filtered}
+  driveTimes={driveTimes}
+  badge={badge}
+  calculating={calculating}
+/>
     </main>
   )
 }

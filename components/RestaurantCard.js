@@ -22,7 +22,11 @@ export default function Home() {
   useEffect(() => {
     fetch('/api/restaurants')
       .then(r => (r.ok ? r.json() : Promise.reject(r.statusText)))
-      .then(data => setRestaurants(data.sort(() => Math.random() - 0.5)))
+      .then(data => setRestaurants(
+        data
+          .map((r, idx) => ({ ...r, id: r.id ?? `r${idx}` })) // ensure every item has a stable key
+          .sort(() => Math.random() - 0.5)                    // shuffle once at load
+      )) => Math.random() - 0.5)))
       .catch(setError)
       .finally(() => setLoading(false))
   }, [])

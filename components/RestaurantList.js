@@ -6,18 +6,17 @@ export default function RestaurantList({ list, driveTimes, badge }) {
   return (
     <ul className="divide-y divide-[#3A3A3A]">
       {list.map(r => {
-        const secs = driveTimes[r.id]
-        const mapsLink = r.googleMapsUrl || '#'
+        const secs = driveTimes[r.id];
+        const mapsLink = r["Google Maps URL"] || '#';
 
         return (
-          <a
-            key={r.id}
-            href={mapsLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block hover:bg-[#1E1E1E] transition"
-          >
-            <li className="py-4 px-2">
+          <li key={r.id} className="py-4 px-2 hover:bg-[#1E1E1E] transition">
+            <a
+              href={mapsLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block"
+            >
               <div className="flex justify-between items-baseline">
                 <div className="text-lg font-bold text-[#F2F2F2]">{r.name}</div>
                 {secs && (
@@ -30,10 +29,10 @@ export default function RestaurantList({ list, driveTimes, badge }) {
                 ))}
               </div>
               <div className="mt-1 text-sm text-[#73655D]">{r.neighborhood || '—'}</div>
-            </li>
-          </a>
-        )
+            </a>
+          </li>
+        );
       })}
     </ul>
-  )
+  );
 }

@@ -99,7 +99,7 @@ export default function Home() {
           {allHoods.length > 0 && (
             <MultiSelectFilter options={allHoods} value={selHoods} onChange={setSelHoods} placeholder="Pick a neighbourhood" inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-[#3A3A3A] focus:border-white" />
           )}
-          {(selCuisines.length || selHoods.length) && (
+          {(selCuisines.length > 0 || selHoods.length > 0) && (
             <button onClick={clearFilters} className="text-sm font-bold text-red-500 underline">Clear all</button>
           )}
           <div className="ml-auto flex gap-3 text-sm">

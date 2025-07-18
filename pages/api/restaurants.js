@@ -24,7 +24,7 @@ export default async function handler(req, res) {
       cuisines: r.fields['Cuisine(s)'] || [],
       neighborhood: r.fields['Neighborhood'],
       address: r.fields['Address'],
-      googleMapsUrl: r.fields['Google Maps URL'],
+      googleMapsUrl: r.fields["Google Maps URL"],
       latitude: r.fields['Latitude'],
       longitude: r.fields['Longitude'],
     }));

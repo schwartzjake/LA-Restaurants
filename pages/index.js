@@ -75,7 +75,7 @@ export default function Home() {
     return list
   }, [restaurants, selCuisines, selHoods, driveTimes])
 
-  const clearFilters = () => { setSelCuisines([]); setSelHoods([]); }) }
+  const clearFilters = () => { setSelCuisines([]); setSelHoods([]); }
   const clearAddress = () => { setAddress(''); setDriveTimes({}) }
 
   return (

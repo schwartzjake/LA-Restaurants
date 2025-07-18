@@ -7,11 +7,16 @@ export default function RestaurantList({ list, driveTimes, badge }) {
     <ul className="divide-y divide-[#3A3A3A]">
       {list.map(r => {
         const secs = driveTimes[r.id];
-        const mapsLink = r['Google Maps URL'] || '#';
+        const mapsLink = r.googleMapsUrl || '#';
 
         return (
           <li key={r.id} className="py-4 px-2 hover:bg-[#1E1E1E] transition">
-            <a href={mapsLink} target="_blank" rel="noopener noreferrer" className="block hover:bg-[#1E1E1E] transition">
+            <a
+              href={mapsLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block"
+            >
               <div className="flex justify-between items-baseline">
                 <div className="text-lg font-bold text-[#F2F2F2]">{r.name}</div>
                 {secs && (

@@ -1,4 +1,4 @@
-// components/RestaurantList.js – Three-line layout with aligned drive times and clickable items
+// components/RestaurantList.js – Uses Google Maps URL from Airtable
 export default function RestaurantList({ list, driveTimes, badge }) {
   if (!list.length)
     return <p className="text-gray-500">No restaurants match those filters.</p>
@@ -7,12 +7,7 @@ export default function RestaurantList({ list, driveTimes, badge }) {
     <ul className="divide-y divide-[#3A3A3A]">
       {list.map(r => {
         const secs = driveTimes[r.id]
-        let mapsLink = ''
-        if (Number.isFinite(r.latitude) && Number.isFinite(r.longitude)) {
-          mapsLink = `https://www.google.com/maps/search/?api=1&query=${r.latitude},${r.longitude}`
-        } else if (r.address) {
-          mapsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(r.address)}`
-        }
+        const mapsLink = r.googleMapsUrl || '#'
 
         return (
           <a

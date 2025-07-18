@@ -65,11 +65,11 @@ export default function Home() {
 
   const filtered = useMemo(() => {
     let list = restaurants
-    if (selCuisines.length || selHoods.length) {
-      list = list.filter(r => (
-        (selCuisines.length && (r.cuisines || []).some(c => selCuisines.includes(c))) ||
-        (selHoods.length && selHoods.includes(r.neighborhood))
-      ))
+    if (selCuisines.length) {
+      list = list.filter(r => (r.cuisines || []).some(c => selCuisines.includes(c)))
+    }
+    if (selHoods.length) {
+      list = list.filter(r => selHoods.includes(r.neighborhood))
     }
     if (Object.keys(driveTimes).length) list = [...list].sort((a, b) => (driveTimes[a.id] ?? 1e9) - (driveTimes[b.id] ?? 1e9))
     return list
@@ -94,10 +94,10 @@ export default function Home() {
       <section className="sticky top-0 z-40 mb-10 bg-[#0D0D0D] border-y border-[#3A3A3A] py-6">
         <div className="flex flex-col gap-5 md:flex-row md:items-center md:gap-8">
           {allCuisines.length > 0 && (
-            <MultiSelectFilter options={allCuisines} value={selCuisines} onChange={setSelCuisines} placeholder="Select Cuisine(s)" inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-[#3A3A3A] focus:border-white" />
+            <MultiSelectFilter options={allCuisines} value={selCuisines} onChange={setSelCuisines} placeholder="Add cuisine…" inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-[#3A3A3A] focus:border-white" />
           )}
           {allHoods.length > 0 && (
-            <MultiSelectFilter options={allHoods} value={selHoods} onChange={setSelHoods} placeholder="Select Neighbourhood(s)" inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-[#3A3A3A] focus:border-white" />
+            <MultiSelectFilter options={allHoods} value={selHoods} onChange={setSelHoods} placeholder="Pick a neighbourhood" inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-[#3A3A3A] focus:border-white" />
           )}
           {(selCuisines.length > 0 || selHoods.length > 0) && (
             <button onClick={clearFilters} className="text-sm font-bold text-red-500 underline">Clear all</button>

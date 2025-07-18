@@ -1,10 +1,8 @@
-// pages/index.js – Adds full‑screen spinner while drive times calculate
-// Spinner appears over content when `calculating` is true.
-// Card layout & logic unchanged.
-
+// pages/index.js – Adds view toggle (card/list)
 import { useEffect, useMemo, useState } from 'react'
 import MultiSelectFilter from '../components/MultiSelectFilter'
 import RestaurantGrid from '../components/RestaurantGrid'
+import RestaurantList from '../components/RestaurantList'
 
 const ORS_KEY = process.env.NEXT_PUBLIC_ORS_API_KEY
 
@@ -17,12 +15,14 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [calculating, setCalculating] = useState(false)
   const [error, setError] = useState(null)
+  const [viewMode, setViewMode] = useState('card')
 
-  /* ─── initial data fetch */
   useEffect(() => {
     fetch('/api/restaurants')
       .then(r => (r.ok ? r.json() : Promise.reject(r.statusText)))
-      .then(setRestaurants)
+      .then(data => setRestaurants(
+        data.map((r, idx) => ({ ...r, id: r.id ?? `r${idx}` }))
+            .sort(() => Math.random() - 0.5)))
       .catch(setError)
       .finally(() => setLoading(false))
   }, [])
@@ -30,7 +30,6 @@ export default function Home() {
   const allCuisines = useMemo(() => [...new Set(restaurants.flatMap(r => r.cuisines || []))].sort(), [restaurants])
   const allHoods = useMemo(() => [...new Set(restaurants.map(r => r.neighborhood).filter(Boolean))].sort(), [restaurants])
 
-  /* ─── helpers */
   const geocode = async addr => {
     const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(addr)}`, {
       headers: { 'User-Agent': 'la-rest/1.0 (contact@example.com)' }
@@ -39,7 +38,6 @@ export default function Home() {
   }
   const badge = s => (s <= 1200 ? 'text-green-400' : s <= 2100 ? 'text-yellow-400' : 'text-red-500')
 
-  /* ─── distance matrix */
   const fetchDriveTimes = async () => {
     if (!address.trim() || !ORS_KEY || calculating) return
     setCalculating(true)
@@ -65,7 +63,6 @@ export default function Home() {
     }
   }
 
-  /* ─── filter + sort */
   const filtered = useMemo(() => {
     let list = restaurants
     if (selCuisines.length || selHoods.length) {
@@ -83,7 +80,6 @@ export default function Home() {
 
   return (
     <main className="relative min-h-screen bg-[#0D0D0D] px-6 py-12 text-[#F2F2F2] font-mono">
-      {/* full‑screen spinner overlay */}
       {calculating && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <svg className="h-12 w-12 animate-spin text-[#F2F2F2]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -95,7 +91,6 @@ export default function Home() {
 
       <h1 className="text-5xl font-bold uppercase tracking-tight mb-10">L.A. Restaurant Recommendations</h1>
 
-      {/* Filter & address bar */}
       <section className="sticky top-0 z-40 mb-10 bg-[#0D0D0D] border-y border-[#3A3A3A] py-6">
         <div className="flex flex-col gap-5 md:flex-row md:items-center md:gap-8">
           {allCuisines.length > 0 && (
@@ -107,6 +102,10 @@ export default function Home() {
           {(selCuisines.length || selHoods.length) && (
             <button onClick={clearFilters} className="text-sm font-bold text-red-500 underline">Clear all</button>
           )}
+          <div className="ml-auto flex gap-3 text-sm">
+            <button onClick={() => setViewMode('card')} className={`underline ${viewMode==='card' ? 'font-bold text-white' : 'text-gray-500'}`}>Card</button>
+            <button onClick={() => setViewMode('list')} className={`underline ${viewMode==='list' ? 'font-bold text-white' : 'text-gray-500'}`}>List</button>
+          </div>
         </div>
 
         <div className="flex flex-col md:flex-row gap-4 mt-6 items-center">
@@ -120,8 +119,11 @@ export default function Home() {
         <p className="mt-4 text-xs text-gray-400">{loading ? 'Loading…' : error ? 'Error loading restaurants.' : `Showing ${filtered.length} restaurant${filtered.length === 1 ? '' : 's'}`}</p>
       </section>
 
-      {/* Results grid */}
-      <RestaurantGrid list={filtered} driveTimes={driveTimes} badge={badge} />
+      {viewMode === 'card' ? (
+        <RestaurantGrid list={filtered} driveTimes={driveTimes} badge={badge} />
+      ) : (
+        <RestaurantList list={filtered} driveTimes={driveTimes} badge={badge} />
+      )}
     </main>
   )
 }

@@ -1,4 +1,4 @@
-// pages/index.js – Adds view toggle (card/list)
+// pages/index.js – Adds view toggle (card/list) + responsive layout
 import { useEffect, useMemo, useState } from 'react'
 import MultiSelectFilter from '../components/MultiSelectFilter'
 import RestaurantGrid from '../components/RestaurantGrid'
@@ -65,10 +65,14 @@ export default function Home() {
 
   const filtered = useMemo(() => {
     let list = restaurants
-    if (selCuisines.length) {
+    if (selCuisines.length && selHoods.length) {
+      list = list.filter(r =>
+        (r.cuisines || []).some(c => selCuisines.includes(c)) &&
+        selHoods.includes(r.neighborhood)
+      )
+    } else if (selCuisines.length) {
       list = list.filter(r => (r.cuisines || []).some(c => selCuisines.includes(c)))
-    }
-    if (selHoods.length) {
+    } else if (selHoods.length) {
       list = list.filter(r => selHoods.includes(r.neighborhood))
     }
     if (Object.keys(driveTimes).length) list = [...list].sort((a, b) => (driveTimes[a.id] ?? 1e9) - (driveTimes[b.id] ?? 1e9))
@@ -79,7 +83,7 @@ export default function Home() {
   const clearAddress = () => { setAddress(''); setDriveTimes({}) }
 
   return (
-    <main className="relative min-h-screen bg-[#0D0D0D] px-6 py-12 text-[#F2F2F2] font-mono">
+    <main className="relative min-h-screen bg-[#0D0D0D] px-4 sm:px-6 py-10 sm:py-12 text-[#F2F2F2] font-mono">
       {calculating && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <svg className="h-12 w-12 animate-spin text-[#F2F2F2]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -89,34 +93,34 @@ export default function Home() {
         </div>
       )}
 
-      <h1 className="text-5xl font-bold uppercase tracking-tight mb-10">L.A. Restaurant Recommendations</h1>
+      <h1 className="text-4xl sm:text-5xl font-bold uppercase tracking-tight mb-8 sm:mb-10">L.A. Restaurant Recommendations</h1>
 
-      <section className="sticky top-0 z-40 mb-10 bg-[#0D0D0D] border-y border-[#3A3A3A] py-6">
-        <div className="flex flex-col gap-5 md:flex-row md:items-center md:gap-8">
+      <section className="sticky top-0 z-40 mb-8 sm:mb-10 bg-[#0D0D0D] border-y border-[#3A3A3A] py-6">
+        <div className="flex flex-col gap-4 sm:gap-5 md:flex-row md:items-center md:gap-8">
           {allCuisines.length > 0 && (
-            <MultiSelectFilter options={allCuisines} value={selCuisines} onChange={setSelCuisines} placeholder="Select Cuisine(s)" inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-[#3A3A3A] focus:border-white" />
+            <MultiSelectFilter options={allCuisines} value={selCuisines} onChange={setSelCuisines} placeholder="Add cuisine…" inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-[#3A3A3A] focus:border-white" />
           )}
           {allHoods.length > 0 && (
-            <MultiSelectFilter options={allHoods} value={selHoods} onChange={setSelHoods} placeholder="Select Neighborhood(s)" inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-[#3A3A3A] focus:border-white" />
+            <MultiSelectFilter options={allHoods} value={selHoods} onChange={setSelHoods} placeholder="Pick a neighbourhood" inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-[#3A3A3A] focus:border-white" />
           )}
           {(selCuisines.length > 0 || selHoods.length > 0) && (
             <button onClick={clearFilters} className="text-sm font-bold text-red-500 underline">Clear all</button>
           )}
-          <div className="ml-auto flex gap-3 text-sm">
+          <div className="sm:ml-auto flex gap-3 text-sm">
             <button onClick={() => setViewMode('card')} className={`underline ${viewMode==='card' ? 'font-bold text-white' : 'text-gray-500'}`}>Card</button>
             <button onClick={() => setViewMode('list')} className={`underline ${viewMode==='list' ? 'font-bold text-white' : 'text-gray-500'}`}>List</button>
           </div>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-4 mt-6 items-center">
+        <div className="flex flex-col sm:flex-row gap-4 mt-6 items-center">
           <input value={address} onChange={e => setAddress(e.target.value)} onKeyDown={e => e.key === 'Enter' && fetchDriveTimes()} placeholder="Enter your address to sort by drive time" className="w-full bg-transparent border border-[#3A3A3A] px-4 py-3 text-[#F2F2F2] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white" />
-          <button onClick={fetchDriveTimes} disabled={!address.trim() || calculating} className="bg-white text-black font-bold px-6 py-3 uppercase text-sm tracking-wide hover:bg-[#3A3A3A] disabled:opacity-30">{calculating ? 'Calculating…' : 'Calculate'}</button>
+          <button onClick={fetchDriveTimes} disabled={!address.trim() || calculating} className="bg-white text-black font-bold px-6 py-3 uppercase text-sm tracking-wide hover:bg-[#3A3A3A] disabled:opacity-30 w-full sm:w-auto">{calculating ? 'Calculating…' : 'Calculate'}</button>
           {!!address.trim() && (
             <button onClick={clearAddress} className="text-red-500 hover:text-red-400" title="Clear address"><svg viewBox="0 0 24 24" className="w-6 h-6 fill-current"><path d="M6 6l12 12M6 18L18 6"/></svg></button>
           )}
         </div>
 
-        <p className="mt-4 text-xs text-gray-400">{loading ? 'Loading…' : error ? 'Error loading restaurants.' : `Showing ${filtered.length} restaurant${filtered.length === 1 ? '' : 's'}`}</p>
+        <p className="mt-4 text-xs text-gray-400 text-center sm:text-left">{loading ? 'Loading…' : error ? 'Error loading restaurants.' : `Showing ${filtered.length} restaurant${filtered.length === 1 ? '' : 's'}`}</p>
       </section>
 
       {viewMode === 'card' ? (

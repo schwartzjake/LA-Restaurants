@@ -7,6 +7,18 @@ import RestaurantList from '../components/RestaurantList'
 const ORS_KEY = process.env.NEXT_PUBLIC_ORS_API_KEY
 
 export default function Home() {
+  const [prevScroll, setPrevScroll] = useState(0);
+  const [hideFilters, setHideFilters] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const curr = window.scrollY;
+      setHideFilters(curr > prevScroll && curr > 80);
+      setPrevScroll(curr);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [prevScroll]);
   const [restaurants, setRestaurants] = useState([])
   const [selCuisines, setSelCuisines] = useState([])
   const [selHoods, setSelHoods] = useState([])
@@ -95,7 +107,7 @@ export default function Home() {
 
       <h1 className="text-4xl sm:text-5xl font-bold uppercase tracking-tight mb-8 sm:mb-10">L.A. Restaurant Recommendations</h1>
 
-      <section className="sticky top-0 z-40 mb-8 sm:mb-10 bg-[#0D0D0D] border-y border-[#3A3A3A] py-6">
+      <section className={`sticky top-0 z-40 mb-8 sm:mb-10 bg-[#0D0D0D] border-y border-[#3A3A3A] py-6 transition-transform duration-300 ${hideFilters ? '-translate-y-full' : 'translate-y-0'}`}>
         <div className="flex flex-col gap-4 sm:gap-5 md:flex-row md:items-center md:gap-8">
           {allCuisines.length > 0 && (
             <MultiSelectFilter options={allCuisines} value={selCuisines} onChange={setSelCuisines} placeholder="Add cuisine…" inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-[#3A3A3A] focus:border-white" />

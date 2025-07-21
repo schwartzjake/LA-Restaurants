@@ -89,7 +89,7 @@ export default function MultiSelectFilter({
         ))}
         <input
           ref={inputRef}
-          onBlur={() => setTimeout(() => setOpen(false), 150)
+          onBlur={() => setTimeout(() => setOpen(false), 150)}
           onKeyDown={handleKeyDown}
           className={`min-w-[120px] flex-1 bg-transparent focus:outline-none ${inputClassName}`}
           placeholder={placeholder}

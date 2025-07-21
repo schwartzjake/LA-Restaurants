@@ -32,6 +32,7 @@ export default function MultiSelectFilter({
   const add = item => {
   onChange([...value, item]);
   setQuery('');
+  setOpen(true);
   setTimeout(() => {
     inputRef.current?.focus();
   }, 0); // ensure DOM update first

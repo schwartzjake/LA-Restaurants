@@ -37,6 +37,35 @@ export default function MultiSelectFilter({
 };
   const remove = item => onChange(value.filter(v => v !== item));
 
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
+
+  const handleKeyDown = (e) => {
+  if (e.key === 'Escape') {
+    setOpen(false);
+    return;
+  }
+  if (!open || menu.length === 0) return;
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    setHighlightedIndex((prev) => (prev + 1) % menu.length);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    setHighlightedIndex((prev) => (prev - 1 + menu.length) % menu.length);
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    const selected = menu[highlightedIndex];
+    if (selected) add(selected);
+  }
+}; else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlightedIndex((prev) => (prev - 1 + menu.length) % menu.length);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      const selected = menu[highlightedIndex];
+      if (selected) add(selected);
+    }
+  };
+
   return (
     <div ref={boxRef} className="relative w-full md:w-auto">
       {/* Chips + input */}
@@ -52,6 +81,7 @@ export default function MultiSelectFilter({
         ))}
         <input
           ref={inputRef}
+          onKeyDown={handleKeyDown}
           className={`min-w-[120px] flex-1 bg-transparent focus:outline-none ${inputClassName}`}
           placeholder={placeholder}
           value={query}
@@ -63,11 +93,11 @@ export default function MultiSelectFilter({
       {/* Dropdown list */}
       {open && menu.length > 0 && (
         <ul className="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded border border-gray-400 bg-white text-black shadow-lg">
-          {menu.map(item => (
+          {menu.map((item, index) => (
             <li
               key={item}
               onClick={() => add(item)}
-              className="cursor-pointer px-3 py-1 hover:bg-gray-200 text-sm uppercase"
+              {`cursor-pointer px-3 py-1 text-sm uppercase ${index === highlightedIndex ? 'bg-gray-300' : 'hover:bg-gray-200'}`}
             >
               {item}
             </li>

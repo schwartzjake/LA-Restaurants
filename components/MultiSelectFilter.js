@@ -14,6 +14,7 @@ export default function MultiSelectFilter({
   const [open,  setOpen]  = useState(false);
   const boxRef = useRef(null);
   const inputRef = useRef(null);
+  const listRef = useRef(null);
 
   /* Close dropdown on outside click */
   useEffect(() => {
@@ -55,7 +56,11 @@ export default function MultiSelectFilter({
  else if (e.key === 'Enter') {
       e.preventDefault();
       const selected = menu[highlightedIndex];
-      if (selected) add(selected);
+      if (selected) {
+        add(selected);
+        const el = listRef.current?.children?.[highlightedIndex];
+        el?.scrollIntoView({ block: 'nearest' });
+      }
     }
   };
 
@@ -85,12 +90,14 @@ export default function MultiSelectFilter({
 
       {/* Dropdown list */}
       {open && menu.length > 0 && (
-        <ul className="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded border border-gray-400 bg-white text-black shadow-lg">
+        <ul
+          ref={listRef}
+          className="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded border border-gray-400 bg-white text-black shadow-lg">
           {menu.map((item, index) => (
             <li
               key={item}
               onClick={() => add(item)}
-              className={`cursor-pointer px-3 py-1 text-sm uppercase ${index === highlightedIndex ? 'bg-gray-300' : 'hover:bg-gray-200'}`}
+              className={`cursor-pointer px-3 py-1 text-sm uppercase ${index === highlightedIndex ? 'bg-gray-300' : 'hover:bg-gray-200'}`}`}
             >
               {item}
             </li>

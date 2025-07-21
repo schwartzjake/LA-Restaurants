@@ -51,11 +51,7 @@ export default function MultiSelectFilter({
   } else if (e.key === 'ArrowUp') {
     e.preventDefault();
     setHighlightedIndex((prev) => (prev - 1 + menu.length) % menu.length);
-  } else if (e.key === 'Enter') {
-    e.preventDefault();
-    const selected = menu[highlightedIndex];
-    if (selected) add(selected);
-  }
+  } 
  else if (e.key === 'Enter') {
       e.preventDefault();
       const selected = menu[highlightedIndex];
@@ -94,7 +90,7 @@ export default function MultiSelectFilter({
             <li
               key={item}
               onClick={() => add(item)}
-              {`cursor-pointer px-3 py-1 text-sm uppercase ${index === highlightedIndex ? 'bg-gray-300' : 'hover:bg-gray-200'}`}
+              className={`cursor-pointer px-3 py-1 text-sm uppercase ${index === highlightedIndex ? 'bg-gray-300' : 'hover:bg-gray-200'}`}`}
             >
               {item}
             </li>

@@ -137,7 +137,7 @@ export default function Home() {
         <div className="flex flex-col sm:flex-row gap-4 mt-6 items-center">
           <input
             value={address}
-            onFocus={e => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+            onFocus={() => setHideFilters(false)}
             onChange={e => setAddress(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && fetchDriveTimes()}
             placeholder="Enter address for drive times"

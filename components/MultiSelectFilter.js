@@ -56,10 +56,7 @@ export default function MultiSelectFilter({
     const selected = menu[highlightedIndex];
     if (selected) add(selected);
   }
-}; else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setHighlightedIndex((prev) => (prev - 1 + menu.length) % menu.length);
-    } else if (e.key === 'Enter') {
+ else if (e.key === 'Enter') {
       e.preventDefault();
       const selected = menu[highlightedIndex];
       if (selected) add(selected);

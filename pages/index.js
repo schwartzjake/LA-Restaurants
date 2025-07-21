@@ -139,8 +139,8 @@ export default function Home() {
             value={address}
             onFocus={() => {
               setHideFilters(false);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
+              setTimeout(() => window.scrollTo({ top: 0 }), 100);
+              }}
             onChange={e => setAddress(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && fetchDriveTimes()}
             placeholder="Enter address for drive times"

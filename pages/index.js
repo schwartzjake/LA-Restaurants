@@ -139,8 +139,8 @@ export default function Home() {
             value={address}
             onChange={e => setAddress(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && fetchDriveTimes()}
-            placeholder="Enter your address to sort by drive time…"
-            className="min-w-[280px] w-full bg-transparent border border-[#3A3A3A] px-4 py-3 text-[#F2F2F2] placeholder-gray-500 placeholder:text-sm placeholder:whitespace-nowrap placeholder:overflow-hidden placeholder:text-ellipsis placeholder:text-[13px] focus:outline-none focus:ring-2 focus:ring-white"
+            placeholder="Enter address for drive times"
+            className="min-w-[280px] w-full bg-transparent border border-[#3A3A3A] px-4 py-3 text-[#F2F2F2] placeholder-gray-500 placeholder:text-sm placeholder:whitespace-nowrap placeholder:overflow-hidden placeholder:text-ellipsis placeholder:text-[13px] placeholder:text-left focus:outline-none focus:ring-2 focus:ring-white"
           />
           <button onClick={fetchDriveTimes} disabled={!address.trim() || calculating} className="bg-white text-black font-bold px-6 py-3 uppercase text-sm tracking-wide hover:bg-[#3A3A3A] disabled:opacity-30 w-full sm:w-auto">{calculating ? 'Calculating…' : 'Calculate'}</button>
           {!!address.trim() && (

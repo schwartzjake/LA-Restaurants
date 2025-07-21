@@ -119,23 +119,29 @@ export default function Home() {
             <button onClick={clearFilters} className="text-sm font-bold text-red-500 underline">Clear all</button>
           )}
           <div className="sm:ml-auto flex gap-2 text-sm">
-  <button
-    onClick={() => setViewMode('card')}
-    className={`px-3 py-1 rounded-full border transition-colors ${viewMode === 'card' ? 'bg-[#F2F2F2] text-black font-bold' : 'border-gray-500 text-gray-400 hover:bg-gray-800'}`}
-  >
-    Card
-  </button>
-  <button
-    onClick={() => setViewMode('list')}
-    className={`px-3 py-1 rounded-full border transition-colors ${viewMode === 'list' ? 'bg-[#F2F2F2] text-black font-bold' : 'border-gray-500 text-gray-400 hover:bg-gray-800'}`}
-  >
-    List
-  </button>
-</div>
+            <button
+              onClick={() => setViewMode('card')}
+              className={`px-3 py-1 rounded-full border transition-colors ${viewMode === 'card' ? 'bg-[#F2F2F2] text-black font-bold' : 'border-gray-500 text-gray-400 hover:bg-gray-800'}`}
+            >
+              Card
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`px-3 py-1 rounded-full border transition-colors ${viewMode === 'list' ? 'bg-[#F2F2F2] text-black font-bold' : 'border-gray-500 text-gray-400 hover:bg-gray-800'}`}
+            >
+              List
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 mt-6 items-center">
-          <input value={address} onChange={e => setAddress(e.target.value)} onKeyDown={e => e.key === 'Enter' && fetchDriveTimes()} placeholder="Enter your address to sort by drive time" className="min-w-[280px] w-full bg-transparent border border-[#3A3A3A] px-4 py-3 text-[#F2F2F2] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white" />
+          <input
+            value={address}
+            onChange={e => setAddress(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && fetchDriveTimes()}
+            placeholder="Enter your address to sort by drive time"
+            className="min-w-[280px] w-full bg-transparent border border-[#3A3A3A] px-4 py-3 text-[#F2F2F2] placeholder-gray-500 placeholder:text-sm placeholder:whitespace-nowrap placeholder:overflow-hidden placeholder:text-ellipsis focus:outline-none focus:ring-2 focus:ring-white"
+          />
           <button onClick={fetchDriveTimes} disabled={!address.trim() || calculating} className="bg-white text-black font-bold px-6 py-3 uppercase text-sm tracking-wide hover:bg-[#3A3A3A] disabled:opacity-30 w-full sm:w-auto">{calculating ? 'Calculating…' : 'Calculate'}</button>
           {!!address.trim() && (
             <button onClick={clearAddress} className="text-red-500 hover:text-red-400" title="Clear address"><svg viewBox="0 0 24 24" className="w-6 h-6 fill-current"><path d="M6 6l12 12M6 18L18 6"/></svg></button>

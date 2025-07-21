@@ -48,10 +48,20 @@ export default function MultiSelectFilter({
   if (!open || menu.length === 0) return;
   if (e.key === 'ArrowDown') {
     e.preventDefault();
-    setHighlightedIndex((prev) => (prev + 1) % menu.length);
+    setHighlightedIndex((prev) => {
+      const next = (prev + 1) % menu.length;
+      const el = listRef.current?.children?.[next];
+      el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      return next;
+    });
   } else if (e.key === 'ArrowUp') {
     e.preventDefault();
-    setHighlightedIndex((prev) => (prev - 1 + menu.length) % menu.length);
+    setHighlightedIndex((prev) => {
+      const next = (prev - 1 + menu.length) % menu.length;
+      const el = listRef.current?.children?.[next];
+      el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      return next;
+    });
   } 
  else if (e.key === 'Enter') {
       e.preventDefault();
@@ -59,7 +69,7 @@ export default function MultiSelectFilter({
       if (selected) {
         add(selected);
         const el = listRef.current?.children?.[highlightedIndex];
-        el?.scrollIntoView({ block: 'nearest' });
+        el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
       }
     }
   };

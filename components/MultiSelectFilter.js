@@ -51,7 +51,7 @@ export default function MultiSelectFilter({
     setHighlightedIndex((prev) => {
       const next = (prev + 1) % menu.length;
       const el = listRef.current?.children?.[next];
-      el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      el?.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' });
       return next;
     });
   } else if (e.key === 'ArrowUp') {
@@ -107,7 +107,7 @@ export default function MultiSelectFilter({
             <li
               key={item}
               onClick={() => add(item)}
-              className={`cursor-pointer px-3 py-1 text-sm uppercase ${index === highlightedIndex ? 'bg-gray-300' : 'hover:bg-gray-200'}`}
+              className={`cursor-pointer px-3 py-1 text-sm uppercase transition-colors duration-150 ${index === highlightedIndex ? 'bg-yellow-300 font-bold' : 'hover:bg-yellow-100'}`}
             >
               {item}
             </li>

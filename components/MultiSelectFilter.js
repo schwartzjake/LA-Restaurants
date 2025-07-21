@@ -97,7 +97,7 @@ export default function MultiSelectFilter({
             <li
               key={item}
               onClick={() => add(item)}
-              className={`cursor-pointer px-3 py-1 text-sm uppercase ${index === highlightedIndex ? 'bg-gray-300' : 'hover:bg-gray-200'}`}`}
+              className={`cursor-pointer px-3 py-1 text-sm uppercase ${index === highlightedIndex ? 'bg-gray-300' : 'hover:bg-gray-200'}`}
             >
               {item}
             </li>

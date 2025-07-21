@@ -108,7 +108,10 @@ export default function MultiSelectFilter({
           {menu.map((item, index) => (
             <li
               key={item}
-              onClick={() => add(item)}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                add(item);
+              }}
               className={`cursor-pointer px-3 py-1 text-sm uppercase transition-colors duration-150 ${index === highlightedIndex ? 'bg-yellow-300 font-bold' : 'hover:bg-yellow-100'}`}
             >
               {item}

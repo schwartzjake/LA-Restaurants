@@ -118,10 +118,20 @@ export default function Home() {
           {(selCuisines.length > 0 || selHoods.length > 0) && (
             <button onClick={clearFilters} className="text-sm font-bold text-red-500 underline">Clear all</button>
           )}
-          <div className="sm:ml-auto flex gap-3 text-sm">
-            <button onClick={() => setViewMode('card')} className={`underline ${viewMode==='card' ? 'font-bold text-white' : 'text-gray-500'}`}>Card</button>
-            <button onClick={() => setViewMode('list')} className={`underline ${viewMode==='list' ? 'font-bold text-white' : 'text-gray-500'}`}>List</button>
-          </div>
+          <div className="sm:ml-auto flex gap-2 text-sm">
+  <button
+    onClick={() => setViewMode('card')}
+    className={`px-3 py-1 rounded-full border transition-colors ${viewMode === 'card' ? 'bg-[#F2F2F2] text-black font-bold' : 'border-gray-500 text-gray-400 hover:bg-gray-800'}`}
+  >
+    Card
+  </button>
+  <button
+    onClick={() => setViewMode('list')}
+    className={`px-3 py-1 rounded-full border transition-colors ${viewMode === 'list' ? 'bg-[#F2F2F2] text-black font-bold' : 'border-gray-500 text-gray-400 hover:bg-gray-800'}`}
+  >
+    List
+  </button>
+</div>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 mt-6 items-center">

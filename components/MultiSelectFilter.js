@@ -30,41 +30,40 @@ export default function MultiSelectFilter({
     .sort();
 
   const add = item => {
-  onChange([...value, item]);
-  setQuery('');
-  setOpen(true);
-  setTimeout(() => {
-    inputRef.current?.focus();
-  }, 0); // ensure DOM update first
-};
+    onChange([...value, item]);
+    setQuery('');
+    setOpen(true);
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 0); // ensure DOM update first
+  };
   const remove = item => onChange(value.filter(v => v !== item));
 
   const [highlightedIndex, setHighlightedIndex] = useState(0);
 
   const handleKeyDown = (e) => {
-  if (e.key === 'Escape') {
-    setOpen(false);
-    return;
-  }
-  if (!open || menu.length === 0) return;
-  if (e.key === 'ArrowDown') {
-    e.preventDefault();
-    setHighlightedIndex((prev) => {
-      const next = (prev + 1) % menu.length;
-      const el = listRef.current?.children?.[next];
-      el?.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' });
-      return next;
-    });
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault();
-    setHighlightedIndex((prev) => {
-      const next = (prev - 1 + menu.length) % menu.length;
-      const el = listRef.current?.children?.[next];
-      el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-      return next;
-    });
-  } 
- else if (e.key === 'Enter') {
+    if (e.key === 'Escape') {
+      setOpen(false);
+      return;
+    }
+    if (!open || menu.length === 0) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setHighlightedIndex((prev) => {
+        const next = (prev + 1) % menu.length;
+        const el = listRef.current?.children?.[next];
+        el?.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' });
+        return next;
+      });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setHighlightedIndex((prev) => {
+        const next = (prev - 1 + menu.length) % menu.length;
+        const el = listRef.current?.children?.[next];
+        el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        return next;
+      });
+    } else if (e.key === 'Enter') {
       e.preventDefault();
       const selected = menu[highlightedIndex];
       if (selected) {
@@ -92,7 +91,7 @@ export default function MultiSelectFilter({
           ref={inputRef}
           onBlur={() => setTimeout(() => setOpen(false), 150)}
           onKeyDown={handleKeyDown}
-          className={`min-w-[120px] flex-1 bg-transparent focus:outline-none ${inputClassName}`}
+          className={`min-w-[14rem] sm:min-w-[18rem] flex-1 bg-transparent focus:outline-none ${inputClassName}`}
           placeholder={placeholder}
           value={query}
           onFocus={() => setOpen(true)}

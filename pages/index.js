@@ -35,7 +35,7 @@ export default function Home() {
       const active = document.activeElement
       if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return
       const currentY = window.scrollY
-      setHideFilters(currentY > lastScrollY.current && currentY > 100)
+      setHideFilters(currentY > lastScrollY.current && currentY > 300)
       lastScrollY.current = currentY
     }
     window.addEventListener('scroll', handleScroll)

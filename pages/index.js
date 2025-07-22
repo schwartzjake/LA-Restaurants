@@ -111,33 +111,33 @@ export default function Home() {
       <h1 className="text-4xl sm:text-5xl font-bold uppercase tracking-tight mb-8 sm:mb-10">L.A. Restaurant Recommendations</h1>
 
       <section className={`sticky top-0 z-40 mb-8 sm:mb-10 bg-[#0D0D0D] border-y border-[#3A3A3A] py-6 transition-transform duration-300 ${hideFilters ? '-translate-y-full' : 'translate-y-0'}`}>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6 flex-wrap">
           <MultiSelectFilter options={allCuisines} value={selCuisines} onChange={setSelCuisines} placeholder="Select Cuisine(s)" inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-gray-600 focus:border-white" />
           <MultiSelectFilter options={allHoods} value={selHoods} onChange={setSelHoods} placeholder="Select Neighborhood(s)" inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-gray-600 focus:border-white" />
           {(selCuisines.length > 0 || selHoods.length > 0) && <button onClick={clearFilters} className="text-sm font-bold text-red-500 underline">Clear all</button>}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setViewMode('card')}
+              className={`px-3 py-1 rounded-full border text-sm font-semibold uppercase tracking-wide ${
+                viewMode === 'card'
+                  ? 'bg-white text-black'
+                  : 'border-[#666] text-[#999] hover:border-[#aaa] hover:text-[#ccc]'
+              }`}
+            >
+              Card View
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`px-3 py-1 rounded-full border text-sm font-semibold uppercase tracking-wide ${
+                viewMode === 'list'
+                  ? 'bg-white text-black'
+                  : 'border-[#666] text-[#999] hover:border-[#aaa] hover:text-[#ccc]'
+              }`}
+            >
+              List View
+            </button>
+          </div>
         </div>
-        <div className="mt-6 flex gap-2">
-  <button
-    onClick={() => setViewMode('card')}
-    className={`px-3 py-1 rounded-full border text-sm font-semibold uppercase tracking-wide ${
-      viewMode === 'card'
-        ? 'bg-white text-black'
-        : 'border-[#666] text-[#999] hover:border-[#aaa] hover:text-[#ccc]'
-    }`}
-  >
-    Card View
-  </button>
-  <button
-    onClick={() => setViewMode('list')}
-    className={`px-3 py-1 rounded-full border text-sm font-semibold uppercase tracking-wide ${
-      viewMode === 'list'
-        ? 'bg-white text-black'
-        : 'border-[#666] text-[#999] hover:border-[#aaa] hover:text-[#ccc]'
-    }`}
-  >
-    List View
-  </button>
-</div>
 
         <div className="flex flex-col sm:flex-row gap-4 mt-6">
           <input type="text" value={address} onChange={e => setAddress(e.target.value)} placeholder="Enter your address to sort by drive time" className="w-full bg-transparent border border-gray-700 px-4 py-3 text-[#F2F2F2] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white" />

@@ -1,8 +1,9 @@
-// pages/index.js – Adds view toggle (card/list) + responsive layout + reintroduce scroll-based filter bar toggle
+// pages/index.js – Adds view toggle (card/list) + responsive layout + reintroduce scroll-based filter bar toggle with icon buttons
 import { useEffect, useMemo, useState, useRef } from 'react'
 import MultiSelectFilter from '../components/MultiSelectFilter'
 import RestaurantGrid from '../components/RestaurantGrid'
 import RestaurantList from '../components/RestaurantList'
+import { LayoutGrid, List } from 'lucide-react'
 
 const ORS_KEY = process.env.NEXT_PUBLIC_ORS_API_KEY
 
@@ -120,23 +121,17 @@ export default function Home() {
           <div className="flex gap-2">
             <button
               onClick={() => setViewMode('card')}
-              className={`px-3 py-1 rounded-full border text-sm font-semibold uppercase tracking-wide ${
-                viewMode === 'card'
-                  ? 'bg-white text-black'
-                  : 'border-[#666] text-[#999] hover:border-[#aaa] hover:text-[#ccc]'
-              }`}
+              className={`p-2 rounded-full border ${viewMode === 'card' ? 'bg-white text-black' : 'border-[#666] text-[#999] hover:border-[#aaa] hover:text-[#ccc]'}`}
+              title="Card view"
             >
-              Card View
+              <LayoutGrid size={18} />
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`px-3 py-1 rounded-full border text-sm font-semibold uppercase tracking-wide ${
-                viewMode === 'list'
-                  ? 'bg-white text-black'
-                  : 'border-[#666] text-[#999] hover:border-[#aaa] hover:text-[#ccc]'
-              }`}
+              className={`p-2 rounded-full border ${viewMode === 'list' ? 'bg-white text-black' : 'border-[#666] text-[#999] hover:border-[#aaa] hover:text-[#ccc]'}`}
+              title="List view"
             >
-              List View
+              <List size={18} />
             </button>
           </div>
         </div>

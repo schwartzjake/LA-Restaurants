@@ -111,10 +111,12 @@ export default function Home() {
       <h1 className="text-4xl sm:text-5xl font-bold uppercase tracking-tight mb-8 sm:mb-10">L.A. Restaurant Recommendations</h1>
 
       <section className={`sticky top-0 z-40 mb-8 sm:mb-10 bg-[#0D0D0D] border-y border-[#3A3A3A] py-6 transition-transform duration-300 ${hideFilters ? '-translate-y-full' : 'translate-y-0'}`}>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6 flex-wrap">
-          <MultiSelectFilter options={allCuisines} value={selCuisines} onChange={setSelCuisines} placeholder="Select Cuisine(s)" inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-gray-600 focus:border-white" />
-          <MultiSelectFilter options={allHoods} value={selHoods} onChange={setSelHoods} placeholder="Select Neighborhood(s)" inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-gray-600 focus:border-white" />
-          {(selCuisines.length > 0 || selHoods.length > 0) && <button onClick={clearFilters} className="text-sm font-bold text-red-500 underline">Clear all</button>}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6 flex-wrap justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:gap-6 gap-4 flex-wrap">
+            <MultiSelectFilter options={allCuisines} value={selCuisines} onChange={setSelCuisines} placeholder="Select Cuisine(s)" inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-gray-600 focus:border-white" />
+            <MultiSelectFilter options={allHoods} value={selHoods} onChange={setSelHoods} placeholder="Select Neighborhood(s)" inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-gray-600 focus:border-white" />
+            {(selCuisines.length > 0 || selHoods.length > 0) && <button onClick={clearFilters} className="text-sm font-bold text-red-500 underline">Clear all</button>}
+          </div>
           <div className="flex gap-2">
             <button
               onClick={() => setViewMode('card')}

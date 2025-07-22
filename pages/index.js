@@ -30,17 +30,16 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
-  const handleScroll = () => {
-    const active = document.activeElement
-    if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return
-    const currentY = window.scrollY
-    setHideFilters(currentY > lastScrollY.current && currentY > 100)
-    lastScrollY.current = currentY
-  }
-  window.addEventListener('scroll', handleScroll)
-  return () => window.removeEventListener('scroll', handleScroll)
-}, [])
-
+    const handleScroll = () => {
+      const active = document.activeElement
+      if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return
+      const currentY = window.scrollY
+      setHideFilters(currentY > lastScrollY.current && currentY > 100)
+      lastScrollY.current = currentY
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   const allCuisines = useMemo(() => [...new Set(restaurants.flatMap(r => r.cuisines || []))].sort(), [restaurants])
   const allHoods = useMemo(() => [...new Set(restaurants.map(r => r.neighborhood).filter(Boolean))].sort(), [restaurants])
@@ -112,7 +111,19 @@ export default function Home() {
       <h1 className="text-4xl sm:text-5xl font-bold uppercase tracking-tight mb-8 sm:mb-10">L.A. Restaurant Recommendations</h1>
 
       <section className={`sticky top-0 z-40 mb-8 sm:mb-10 bg-[#0D0D0D] border-y border-[#3A3A3A] py-6 transition-transform duration-300 ${hideFilters ? '-translate-y-full' : 'translate-y-0'}`}>
-        ...{/* content unchanged for brevity */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+          <MultiSelectFilter options={allCuisines} value={selCuisines} onChange={setSelCuisines} placeholder="Select Cuisine(s)" inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-gray-600 focus:border-white" />
+          <MultiSelectFilter options={allHoods} value={selHoods} onChange={setSelHoods} placeholder="Select Neighborhood(s)" inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-gray-600 focus:border-white" />
+          {(selCuisines.length > 0 || selHoods.length > 0) && <button onClick={clearFilters} className="text-sm font-bold text-red-500 underline">Clear all</button>}
+        </div>
+        <div className="flex flex-col sm:flex-row gap-4 mt-6">
+          <input type="text" value={address} onChange={e => setAddress(e.target.value)} placeholder="Enter your address to sort by drive time" className="w-full bg-transparent border border-gray-700 px-4 py-3 text-[#F2F2F2] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white" />
+          <div className="flex gap-3">
+            <button onClick={fetchDriveTimes} disabled={!address.trim() || loading} className="bg-white text-black font-bold px-6 py-3 uppercase text-sm tracking-wide hover:bg-gray-200 disabled:opacity-30">Calculate</button>
+            {address && <button onClick={clearAddress} className="px-3 py-3 border border-[#444] hover:bg-[#1e1e1e]" title="Clear address"><span className="sr-only">Clear address</span>⨯</button>}
+          </div>
+        </div>
+        <p className="mt-4 text-xs text-gray-400">{loading ? 'Loading…' : error ? 'Error loading restaurants.' : `Showing ${filtered.length} restaurant${filtered.length === 1 ? '' : 's'}`}</p>
       </section>
 
       {viewMode === 'card' ? (

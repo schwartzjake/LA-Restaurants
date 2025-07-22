@@ -117,27 +117,27 @@ export default function Home() {
           {(selCuisines.length > 0 || selHoods.length > 0) && <button onClick={clearFilters} className="text-sm font-bold text-red-500 underline">Clear all</button>}
         </div>
         <div className="mt-6 flex gap-2">
-        <button
-          onClick={() => setViewMode('card')}
-          className={`px-3 py-1 rounded-full border text-sm font-semibold uppercase tracking-wide ${
-            viewMode === 'card'
-              ? 'bg-white text-black'
-              : 'border-[#666] text-[#999] hover:border-[#aaa] hover:text-[#ccc]'
-          }`}
-        >
-          Card View
-        </button>
-        <button
-          onClick={() => setViewMode('list')}
-          className={`px-3 py-1 rounded-full border text-sm font-semibold uppercase tracking-wide ${
-            viewMode === 'list'
-              ? 'bg-white text-black'
-              : 'border-[#666] text-[#999] hover:border-[#aaa] hover:text-[#ccc]'
-          }`}
-        >
-          List View
-        </button>
-      </div>
+  <button
+    onClick={() => setViewMode('card')}
+    className={`px-3 py-1 rounded-full border text-sm font-semibold uppercase tracking-wide ${
+      viewMode === 'card'
+        ? 'bg-white text-black'
+        : 'border-[#666] text-[#999] hover:border-[#aaa] hover:text-[#ccc]'
+    }`}
+  >
+    Card View
+  </button>
+  <button
+    onClick={() => setViewMode('list')}
+    className={`px-3 py-1 rounded-full border text-sm font-semibold uppercase tracking-wide ${
+      viewMode === 'list'
+        ? 'bg-white text-black'
+        : 'border-[#666] text-[#999] hover:border-[#aaa] hover:text-[#ccc]'
+    }`}
+  >
+    List View
+  </button>
+</div>
 
         <div className="flex flex-col sm:flex-row gap-4 mt-6">
           <input type="text" value={address} onChange={e => setAddress(e.target.value)} placeholder="Enter your address to sort by drive time" className="w-full bg-transparent border border-gray-700 px-4 py-3 text-[#F2F2F2] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white" />

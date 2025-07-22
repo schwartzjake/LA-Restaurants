@@ -1,5 +1,5 @@
-// pages/index.js – Adds view toggle (card/list) + responsive layout
-import { useEffect, useMemo, useState } from 'react'
+// pages/index.js – Adds view toggle (card/list) + responsive layout + reintroduce scroll-based filter bar toggle
+import { useEffect, useMemo, useState, useRef } from 'react'
 import MultiSelectFilter from '../components/MultiSelectFilter'
 import RestaurantGrid from '../components/RestaurantGrid'
 import RestaurantList from '../components/RestaurantList'
@@ -7,7 +7,6 @@ import RestaurantList from '../components/RestaurantList'
 const ORS_KEY = process.env.NEXT_PUBLIC_ORS_API_KEY
 
 export default function Home() {
-
   const [restaurants, setRestaurants] = useState([])
   const [selCuisines, setSelCuisines] = useState([])
   const [selHoods, setSelHoods] = useState([])
@@ -17,6 +16,8 @@ export default function Home() {
   const [calculating, setCalculating] = useState(false)
   const [error, setError] = useState(null)
   const [viewMode, setViewMode] = useState('card')
+  const [hideFilters, setHideFilters] = useState(false)
+  const lastScrollY = useRef(0)
 
   useEffect(() => {
     fetch('/api/restaurants')
@@ -28,6 +29,18 @@ export default function Home() {
       .finally(() => setLoading(false))
   }, [])
 
+  useEffect(() => {
+    const handleScroll = () => {
+      const active = document.activeElement
+      if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return
+      const currentY = window.scrollY
+      setHideFilters(currentY > lastScrollY.current && currentY > 100)
+      lastScrollY.current = currentY
+    }
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
   const allCuisines = useMemo(() => [...new Set(restaurants.flatMap(r => r.cuisines || []))].sort(), [restaurants])
   const allHoods = useMemo(() => [...new Set(restaurants.map(r => r.neighborhood).filter(Boolean))].sort(), [restaurants])
 
@@ -37,6 +50,7 @@ export default function Home() {
     }).then(r => r.json())
     return res[0] ? { lat: +res[0].lat, lng: +res[0].lon } : null
   }
+
   const badge = s => (s <= 1200 ? 'text-green-400' : s <= 2100 ? 'text-yellow-400' : 'text-red-500')
 
   const fetchDriveTimes = async () => {
@@ -96,51 +110,20 @@ export default function Home() {
 
       <h1 className="text-4xl sm:text-5xl font-bold uppercase tracking-tight mb-8 sm:mb-10">L.A. Restaurant Recommendations</h1>
 
-      <section className="sticky top-0 z-40 mb-8 sm:mb-10 bg-[#0D0D0D] border-y border-[#3A3A3A] py-6 transition-transform duration-300">
-        <div className="flex flex-col gap-4 sm:gap-5 md:flex-row md:items-center md:gap-8">
-          {allCuisines.length > 0 && (
-            <MultiSelectFilter options={allCuisines} value={selCuisines} onChange={setSelCuisines} placeholder="Select Cuisine(s)" inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-[#3A3A3A] focus:border-white" closeMenuOnSelect={false} highlightSearch matchTags />
-          )}
-          {allHoods.length > 0 && (
-            <MultiSelectFilter options={allHoods} value={selHoods} onChange={setSelHoods} placeholder="Select Neighborhood(s)" inputClassName="min-w-[220px] bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-[#3A3A3A] focus:border-white" closeMenuOnSelect={false} highlightSearch matchTags />
-          )}
-          {(selCuisines.length > 0 || selHoods.length > 0) && (
-            <button onClick={clearFilters} className="text-sm font-bold text-red-500 underline">Clear all</button>
-          )}
-          <div className="sm:ml-auto flex gap-2 text-sm">
-            <button
-              onClick={() => setViewMode('card')}
-              className={`px-3 py-1 rounded-full border transition-colors ${viewMode === 'card' ? 'bg-[#F2F2F2] text-black font-bold' : 'border-gray-500 text-gray-400 hover:bg-gray-800'}`}
-            >
-              Card
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`px-3 py-1 rounded-full border transition-colors ${viewMode === 'list' ? 'bg-[#F2F2F2] text-black font-bold' : 'border-gray-500 text-gray-400 hover:bg-gray-800'}`}
-            >
-              List
-            </button>
+      <section className={`sticky top-0 z-40 mb-8 sm:mb-10 bg-[#0D0D0D] border-y border-[#3A3A3A] py-6 transition-transform duration-300 ${hideFilters ? '-translate-y-full' : 'translate-y-0'}`}>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+          <MultiSelectFilter options={allCuisines} value={selCuisines} onChange={setSelCuisines} placeholder="Select Cuisine(s)" inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-gray-600 focus:border-white" />
+          <MultiSelectFilter options={allHoods} value={selHoods} onChange={setSelHoods} placeholder="Select Neighborhood(s)" inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-gray-600 focus:border-white" />
+          {(selCuisines.length > 0 || selHoods.length > 0) && <button onClick={clearFilters} className="text-sm font-bold text-red-500 underline">Clear all</button>}
+        </div>
+        <div className="flex flex-col sm:flex-row gap-4 mt-6">
+          <input type="text" value={address} onChange={e => setAddress(e.target.value)} placeholder="Enter your address to sort by drive time" className="w-full bg-transparent border border-gray-700 px-4 py-3 text-[#F2F2F2] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white" />
+          <div className="flex gap-3">
+            <button onClick={fetchDriveTimes} disabled={!address.trim() || loading} className="bg-white text-black font-bold px-6 py-3 uppercase text-sm tracking-wide hover:bg-gray-200 disabled:opacity-30">Calculate</button>
+            {address && <button onClick={clearAddress} className="px-3 py-3 border border-[#444] hover:bg-[#1e1e1e]" title="Clear address"><span className="sr-only">Clear address</span>⨯</button>}
           </div>
         </div>
-
-        <div className="flex flex-col sm:flex-row gap-4 mt-6 items-center">
-          <input
-            value={address}
-            onFocus={() => {
-              setTimeout(() => window.scrollTo({ top: 0 }), 100);
-              }}
-            onChange={e => setAddress(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && fetchDriveTimes()}
-            placeholder="Enter address for drive times"
-            className="min-w-[280px] w-full bg-transparent border border-[#3A3A3A] px-4 py-3 text-[#F2F2F2] placeholder-gray-500 placeholder:text-sm placeholder:whitespace-nowrap placeholder:overflow-hidden placeholder:text-ellipsis placeholder:text-[13px] placeholder:text-left focus:outline-none focus:ring-2 focus:ring-white focus:scroll-mt-32"
-          />
-          <button onClick={fetchDriveTimes} disabled={!address.trim() || calculating} className="bg-white text-black font-bold px-6 py-3 uppercase text-sm tracking-wide hover:bg-[#3A3A3A] disabled:opacity-30 w-full sm:w-auto">{calculating ? 'Calculating…' : 'Calculate'}</button>
-          {!!address.trim() && (
-            <button onClick={clearAddress} className="text-red-500 hover:text-red-400" title="Clear address"><svg viewBox="0 0 24 24" className="w-6 h-6 fill-current"><path d="M6 6l12 12M6 18L18 6"/></svg></button>
-          )}
-        </div>
-
-        <p className="mt-4 text-xs text-gray-400 text-center sm:text-left">{loading ? 'Loading…' : error ? 'Error loading restaurants.' : `Showing ${filtered.length} restaurant${filtered.length === 1 ? '' : 's'}`}</p>
+        <p className="mt-4 text-xs text-gray-400">{loading ? 'Loading…' : error ? 'Error loading restaurants.' : `Showing ${filtered.length} restaurant${filtered.length === 1 ? '' : 's'}`}</p>
       </section>
 
       {viewMode === 'card' ? (

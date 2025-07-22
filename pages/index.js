@@ -1,8 +1,9 @@
-// pages/index.js – Adds view toggle (card/list) + responsive layout + reintroduce scroll-based filter bar toggle
+// pages/index.js – Adds view toggle (card/list) + responsive layout + reintroduce scroll-based filter bar toggle with icon buttons
 import { useEffect, useMemo, useState, useRef } from 'react'
 import MultiSelectFilter from '../components/MultiSelectFilter'
 import RestaurantGrid from '../components/RestaurantGrid'
 import RestaurantList from '../components/RestaurantList'
+import { LayoutGrid, List } from 'lucide-react'
 
 const ORS_KEY = process.env.NEXT_PUBLIC_ORS_API_KEY
 
@@ -111,11 +112,30 @@ export default function Home() {
       <h1 className="text-4xl sm:text-5xl font-bold uppercase tracking-tight mb-8 sm:mb-10">L.A. Restaurant Recommendations</h1>
 
       <section className={`sticky top-0 z-40 mb-8 sm:mb-10 bg-[#0D0D0D] border-y border-[#3A3A3A] py-6 transition-transform duration-300 ${hideFilters ? '-translate-y-full' : 'translate-y-0'}`}>
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
-          <MultiSelectFilter options={allCuisines} value={selCuisines} onChange={setSelCuisines} placeholder="Select Cuisine(s)" inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-gray-600 focus:border-white" />
-          <MultiSelectFilter options={allHoods} value={selHoods} onChange={setSelHoods} placeholder="Select Neighborhood(s)" inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-gray-600 focus:border-white" />
-          {(selCuisines.length > 0 || selHoods.length > 0) && <button onClick={clearFilters} className="text-sm font-bold text-red-500 underline">Clear all</button>}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6 flex-wrap justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:gap-6 gap-4 flex-wrap">
+            <MultiSelectFilter options={allCuisines} value={selCuisines} onChange={setSelCuisines} placeholder="Select Cuisine(s)" inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-gray-600 focus:border-white" />
+            <MultiSelectFilter options={allHoods} value={selHoods} onChange={setSelHoods} placeholder="Select Neighborhood(s)" inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-gray-600 focus:border-white" />
+            {(selCuisines.length > 0 || selHoods.length > 0) && <button onClick={clearFilters} className="text-sm font-bold text-red-500 underline">Clear all</button>}
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setViewMode('card')}
+              className={`p-2 rounded-full border ${viewMode === 'card' ? 'bg-white text-black' : 'border-[#666] text-[#999] hover:border-[#aaa] hover:text-[#ccc]'}`}
+              title="Card view"
+            >
+              <LayoutGrid size={18} />
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`p-2 rounded-full border ${viewMode === 'list' ? 'bg-white text-black' : 'border-[#666] text-[#999] hover:border-[#aaa] hover:text-[#ccc]'}`}
+              title="List view"
+            >
+              <List size={18} />
+            </button>
+          </div>
         </div>
+
         <div className="flex flex-col sm:flex-row gap-4 mt-6">
           <input type="text" value={address} onChange={e => setAddress(e.target.value)} placeholder="Enter your address to sort by drive time" className="w-full bg-transparent border border-gray-700 px-4 py-3 text-[#F2F2F2] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white" />
           <div className="flex gap-3">

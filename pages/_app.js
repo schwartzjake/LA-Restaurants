@@ -1,6 +1,7 @@
 // pages/_app.js
 import Head from 'next/head'
 import '../styles/globals.css'
+import { Analytics } from '@vercel/analytics/react'
 
 function MyApp({ Component, pageProps }) {
   return (
@@ -9,6 +10,7 @@ function MyApp({ Component, pageProps }) {
         <link rel="icon" href="/favicon.ico" />
         <link rel="icon" href="/favicon.png" />
       </Head>
+     <Analytics />
       <Component {...pageProps} />
     </>
   )

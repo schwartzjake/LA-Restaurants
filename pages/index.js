@@ -124,8 +124,8 @@ export default function Home() {
       )}
 
      <h1 className="text-5xl font-bold uppercase tracking-tight mb-10 flex items-center gap-2">
-  The List
-  <span className="bg-[#592025] text-[#F2F2F2] px-2 py-1 text-3xl rounded">
+  The List  
+  <span className="bg-[#592025] text-[#F2F2F2] px-2 py-1 text-xl rounded">
     LA
   </span>
 </h1>

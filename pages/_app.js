@@ -1,7 +1,6 @@
 // pages/_app.js
 import Head from 'next/head'
 import '../styles/globals.css'
-import { Analytics } from '@vercel/analytics/next';
 
 function MyApp({ Component, pageProps }) {
   return (

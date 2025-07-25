@@ -123,11 +123,13 @@ export default function Home() {
         </div>
       )}
 
-      <h1 className="text-4xl sm:text-5xl font-bold uppercase tracking-tight mb-8 sm:mb-10">The List</h1>
-      <h1 className="flex flex-wrap gap-2 mb-2">
-          {(LA(c => (
-            <span key={c} className="text-4xl sm:text-5xl font-bold uppercase tracking-tight mb-8 sm:mb-10">{c}</span>
-          ))}</h1>
+     <h1 className="text-5xl font-bold uppercase tracking-tight mb-10 flex items-center gap-2">
+  The List
+  <span className="bg-[#592025] text-[#F2F2F2] px-2 py-1 text-xl rounded">
+    LA
+  </span>
+</h1>
+
 
       <section className={`sticky top-0 z-40 mb-8 sm:mb-10 bg-[#0D0D0D] border-y border-[#3A3A3A] py-6 transition-transform duration-300 ${hideFilters ? '-translate-y-full' : 'translate-y-0'}`}>
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6 flex-wrap justify-between">

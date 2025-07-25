@@ -31,16 +31,30 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
-    const handleScroll = () => {
-      const active = document.activeElement
-      if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return
-      const currentY = window.scrollY
-      setHideFilters(currentY > lastScrollY.current && currentY > 300)
-      lastScrollY.current = currentY
+  let lastY = 0;
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY;
+    const delta = y - lastY;
+
+    // always show at the top
+    if (y <= 100) {
+      setHideFilters(false);
     }
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+    // hide after you scroll down >20px
+    else if (delta > 20) {
+      setHideFilters(true);
+    }
+    // only show back after you scroll up >50px
+    else if (delta < -65) {
+      setHideFilters(false);
+    }
+
+    lastY = y;
+  });
+
+  return () => window.removeEventListener('scroll', onScroll);
+}, []);
+
 
   const allCuisines = useMemo(() => [...new Set(restaurants.flatMap(r => r.cuisines || []))].sort(), [restaurants])
   const allHoods = useMemo(() => [...new Set(restaurants.map(r => r.neighborhood).filter(Boolean))].sort(), [restaurants])

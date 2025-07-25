@@ -37,7 +37,7 @@ export default function Home() {
     const delta = y - lastY;
 
     // always show at the top
-    if (y <= 50) {
+    if (y <= 60) {
       setHideFilters(false);
     }
     // hide after you scroll down >20px
@@ -45,7 +45,7 @@ export default function Home() {
       setHideFilters(true);
     }
     // only show back after you scroll up >25px
-    else if (delta < -25) {
+    else if (delta < -35) {
       setHideFilters(false);
     }
 

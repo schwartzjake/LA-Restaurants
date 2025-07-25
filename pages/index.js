@@ -41,7 +41,7 @@ export default function Home() {
       setHideFilters(false);
     }
     // hide after you scroll down >20px
-    else if (delta > 60) {
+    else if (delta > 20) {
       setHideFilters(true);
     }
     // only show back after you scroll up >25px

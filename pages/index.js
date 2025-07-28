@@ -157,7 +157,18 @@ export default function Home() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 mt-6">
-          <input type="text" value={address} onChange={e => setAddress(e.target.value)} placeholder="Enter your address to sort by drive time" className="w-full bg-transparent border border-gray-700 px-4 py-3 text-[#F2F2F2] placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white" />
+         <input
+  type="text"
+  value={address}
+  onChange={e => setAddress(e.target.value)}
+    onKeyDown={e => {
+    if (e.key === 'Enter') {
+      fetchDriveTimes();
+    }
+              }}
+  placeholder="Enter address to sort by drive time"
+  className="w-full bg-transparent border border-gray-700 px-4 py-3 text-[#F2F2F2] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white"
+/>
           <div className="flex gap-3">
             <button onClick={fetchDriveTimes} disabled={!address.trim() || loading} className="bg-white text-black font-bold px-6 py-3 uppercase text-sm tracking-wide hover:bg-gray-200 disabled:opacity-30">Calculate</button>
             {address && <button onClick={clearAddress} className="px-3 py-3 border border-[#444] hover:bg-[#1e1e1e]" title="Clear address"><span className="sr-only">Clear address</span>⨯</button>}

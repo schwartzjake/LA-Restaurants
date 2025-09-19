@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState, useRef } from 'react'
 import MultiSelectFilter from '../components/MultiSelectFilter'
 import RestaurantGrid from '../components/RestaurantGrid'
 import RestaurantList from '../components/RestaurantList'
-import { LayoutGrid, List } from 'lucide-react'
+import { LayoutGrid, List, MapPinned } from 'lucide-react'
 
 const ORS_KEY = process.env.NEXT_PUBLIC_ORS_API_KEY
 
@@ -139,6 +139,15 @@ export default function Home() {
             {(selCuisines.length > 0 || selHoods.length > 0) && <button onClick={clearFilters} className="text-sm font-bold text-red-500 underline">Clear all</button>}
           </div>
           <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setViewMode('map')}
+              className={`p-2 rounded-full border ${viewMode === 'map' ? 'bg-white text-black' : 'border-[#666] text-[#999] hover:border-[#aaa] hover:text-[#ccc]'}`}
+              title="Map view"
+              aria-label="Map view"
+            >
+              <MapPinned size={18} />
+            </button>
             <button
               onClick={() => setViewMode('card')}
               className={`p-2 rounded-full border ${viewMode === 'card' ? 'bg-white text-black' : 'border-[#666] text-[#999] hover:border-[#aaa] hover:text-[#ccc]'}`}

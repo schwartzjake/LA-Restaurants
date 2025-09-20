@@ -1,9 +1,15 @@
 // pages/index.js – Adds view toggle (card/list) + responsive layout + reintroduce scroll-based filter bar toggle with icon buttons
-import { useEffect, useMemo, useState, useRef } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import dynamic from 'next/dynamic';
 import MultiSelectFilter from '../components/MultiSelectFilter'
 import RestaurantGrid from '../components/RestaurantGrid'
 import RestaurantList from '../components/RestaurantList'
 import { LayoutGrid, List, MapPinned } from 'lucide-react'
+
+const RestaurantMap = dynamic(() => import('../components/RestaurantMap'), {
+  ssr: false,
+  loading: () => <div className="h-[60vh] flex items-center justify-center">Loading map…</div>,
+});
 
 const ORS_KEY = process.env.NEXT_PUBLIC_ORS_API_KEY
 
@@ -17,8 +23,8 @@ export default function Home() {
   const [calculating, setCalculating] = useState(false)
   const [error, setError] = useState(null)
   const [viewMode, setViewMode] = useState('card')
+  const [userLatLng, setUserLatLng] = useState(null)
   const [hideFilters, setHideFilters] = useState(false)
-  const lastScrollY = useRef(0)
 
   useEffect(() => {
     fetch('/api/restaurants')
@@ -31,29 +37,26 @@ export default function Home() {
   }, [])
 
   useEffect(() => {
-  let lastY = 0;
-  window.addEventListener('scroll', () => {
-    const y = window.scrollY;
-    const delta = y - lastY;
+    let lastY = 0;
 
-    // always show at the top
-    if (y <= 200) {
-      setHideFilters(false);
-    }
-    // hide after you scroll down >20px
-    else if (delta > 20) {
-      setHideFilters(true);
-    }
-    // only show back after you scroll up >50px
-    else if (delta < -65) {
-      setHideFilters(false);
-    }
+    const onScroll = () => {
+      const y = window.scrollY;
+      const delta = y - lastY;
 
-    lastY = y;
-  });
+      if (y <= 200) {
+        setHideFilters(false);
+      } else if (delta > 20) {
+        setHideFilters(true);
+      } else if (delta < -65) {
+        setHideFilters(false);
+      }
 
-  return () => window.removeEventListener('scroll', onScroll);
-}, []);
+      lastY = y;
+    };
+
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
 
   const allCuisines = useMemo(() => [...new Set(restaurants.flatMap(r => r.cuisines || []))].sort(), [restaurants])
@@ -74,6 +77,7 @@ export default function Home() {
     try {
       const origin = await geocode(address)
       if (!origin) { alert('Address not found'); return }
+      setUserLatLng([origin.lat, origin.lng])
 
       const coords = restaurants.filter(r => Number.isFinite(r.latitude) && Number.isFinite(r.longitude))
       if (!coords.length) { alert('No restaurant coordinates'); return }

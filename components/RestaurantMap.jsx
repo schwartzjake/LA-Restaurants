@@ -147,6 +147,10 @@ export default function RestaurantMap({ restaurants, userLatLng }) {
     });
 
     mapRef.current = map;
+
+    // Map controls live here. Swap or remove the controls below to change what's
+    // rendered in the UI: e.g. move the navigation widget by updating the
+    // second argument or pass different options into NavigationControl.
     map.addControl(new maplibregl.AttributionControl({ compact: true }));
     map.addControl(new maplibregl.NavigationControl({ showZoom: true, visualizePitch: true }), 'top-right');
 

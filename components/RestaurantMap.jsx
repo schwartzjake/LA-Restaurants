@@ -131,6 +131,15 @@ export default function RestaurantMap({ restaurants, userLatLng }) {
   }, [geoJson]);
 
   useEffect(() => {
+    const customStylePath = (stylePreferences.customStylePath || '').trim();
+    if (customStylePath) {
+      const normalizedPath = customStylePath.startsWith('http') || customStylePath.startsWith('/')
+        ? customStylePath
+        : `/${customStylePath}`;
+      setStyleUrl(normalizedPath);
+      return;
+    }
+
     if (!GEOAPIFY_KEY) return;
     const baseStyle = stylePreferences.baseStyle ?? 'dark-matter';
     setStyleUrl(`https://maps.geoapify.com/v1/styles/${baseStyle}/style.json?apiKey=${GEOAPIFY_KEY}`);

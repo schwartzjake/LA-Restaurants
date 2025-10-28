@@ -17,6 +17,34 @@ const escapeHtml = (unsafe) =>
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
 
+const normalizeCuisines = (value) => {
+  if (Array.isArray(value)) {
+    return value.map((item) => `${item}`.trim()).filter(Boolean);
+  }
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (Array.isArray(parsed)) {
+          return parsed.map((item) => `${item}`.trim()).filter(Boolean);
+        }
+      } catch (_) {
+        // fall through to delimiter-based parsing
+      }
+    }
+
+    return trimmed
+      .replace(/^\[|\]$/g, '')
+      .split(',')
+      .map((part) => part.replace(/^['"]+|['"]+$/g, '').trim())
+      .filter(Boolean);
+  }
+
+  return [];
+};
+
 const buildGeoJson = (restaurants = []) => {
   const toNum = (value) => (typeof value === 'string' ? parseFloat(value) : value);
 
@@ -27,34 +55,6 @@ const buildGeoJson = (restaurants = []) => {
       if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
 
       const name = r.name ?? r.Name ?? '(Unnamed)';
-      const normalizeCuisines = (value) => {
-        if (Array.isArray(value)) {
-          return value.map((item) => `${item}`.trim()).filter(Boolean);
-        }
-
-        if (typeof value === 'string') {
-          const trimmed = value.trim();
-          if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-            try {
-              const parsed = JSON.parse(trimmed);
-              if (Array.isArray(parsed)) {
-                return parsed.map((item) => `${item}`.trim()).filter(Boolean);
-              }
-            } catch (_) {
-              // fall through to delimiter-based parsing
-            }
-          }
-
-          return trimmed
-            .replace(/^\[|\]$/g, '')
-            .split(',')
-            .map((part) => part.replace(/^['"]+|['"]+$/g, '').trim())
-            .filter(Boolean);
-        }
-
-        return [];
-      };
-
       const cuisines = normalizeCuisines(r.cuisines ?? r['Cuisine(s)']);
 
       const googleUrl = r.googleMapsUrl ?? r['Google Maps URL'] ?? r.google_maps_url ?? '#';
@@ -299,15 +299,11 @@ export default function RestaurantMap({ restaurants, userLatLng }) {
         popupRef.current
           .setLngLat(coordinates)
           .setHTML(
-            buildPopupHtml({
-              name: properties?.name ?? 'Restaurant',
-              cuisines: Array.isArray(properties?.cuisines)
-                ? properties.cuisines
-                : typeof properties?.cuisines === 'string'
-                ? properties.cuisines.split(',')
-                : [],
-              googleUrl: properties?.googleUrl ?? '#',
-            })
+              buildPopupHtml({
+                name: properties?.name ?? 'Restaurant',
+                cuisines: normalizeCuisines(properties?.cuisines),
+                googleUrl: properties?.googleUrl ?? '#',
+              })
           )
           .addTo(map);
       };

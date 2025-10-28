@@ -53,8 +53,10 @@
 }
 
 .maplibregl-popup {
-  background: transparent;
-  box-shadow: none;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  filter: none !important;
 }
 
 .maplibregl-popup-content {

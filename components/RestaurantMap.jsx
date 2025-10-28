@@ -27,12 +27,35 @@ const buildGeoJson = (restaurants = []) => {
       if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
 
       const name = r.name ?? r.Name ?? '(Unnamed)';
-      const cuisinesRaw = r.cuisines ?? r['Cuisine(s)'] ?? [];
-      const cuisines = Array.isArray(cuisinesRaw)
-        ? cuisinesRaw
-        : typeof cuisinesRaw === 'string'
-        ? cuisinesRaw.split(',').map((s) => s.trim()).filter(Boolean)
-        : [];
+      const normalizeCuisines = (value) => {
+        if (Array.isArray(value)) {
+          return value.map((item) => `${item}`.trim()).filter(Boolean);
+        }
+
+        if (typeof value === 'string') {
+          const trimmed = value.trim();
+          if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+            try {
+              const parsed = JSON.parse(trimmed);
+              if (Array.isArray(parsed)) {
+                return parsed.map((item) => `${item}`.trim()).filter(Boolean);
+              }
+            } catch (_) {
+              // fall through to delimiter-based parsing
+            }
+          }
+
+          return trimmed
+            .replace(/^\[|\]$/g, '')
+            .split(',')
+            .map((part) => part.replace(/^['"]+|['"]+$/g, '').trim())
+            .filter(Boolean);
+        }
+
+        return [];
+      };
+
+      const cuisines = normalizeCuisines(r.cuisines ?? r['Cuisine(s)']);
 
       const googleUrl = r.googleMapsUrl ?? r['Google Maps URL'] ?? r.google_maps_url ?? '#';
 

@@ -148,9 +148,13 @@ export default function RestaurantMap({ restaurants, userLatLng }) {
 
   const geoJson = useMemo(() => buildGeoJson(restaurants), [restaurants]);
   const geoJsonRef = useRef(geoJson);
+  const initialGeoJsonRef = useRef(null);
 
   useEffect(() => {
     geoJsonRef.current = geoJson;
+    if (!initialGeoJsonRef.current && geoJson?.features?.length) {
+      initialGeoJsonRef.current = geoJson;
+    }
   }, [geoJson]);
 
   useEffect(() => {
@@ -185,6 +189,25 @@ export default function RestaurantMap({ restaurants, userLatLng }) {
 
     const handleStyle = () => applyStyleOverrides(map, stylePreferences.overrides);
     map.on('styledata', handleStyle);
+
+    let handleSourceData;
+
+    const attemptInitialFit = () => {
+      if (hasFitInitialBounds.current) return;
+      const features = initialGeoJsonRef.current?.features ?? geoJsonRef.current?.features ?? [];
+      if (!features.length) return;
+
+      const bounds = features.reduce((acc, feature) => {
+        const [lng, lat] = feature.geometry.coordinates;
+        if (!acc) return new maplibregl.LngLatBounds([lng, lat], [lng, lat]);
+        return acc.extend([lng, lat]);
+      }, null);
+
+      if (bounds) {
+        hasFitInitialBounds.current = true;
+        map.fitBounds(bounds, { padding: 60, maxZoom: 14 });
+      }
+    };
 
     map.on('load', () => {
       map.addSource(CLUSTER_SOURCE_ID, {
@@ -324,10 +347,24 @@ export default function RestaurantMap({ restaurants, userLatLng }) {
           if (features.length) openPopupForFeature(features[0]);
         });
       });
+
+      handleSourceData = (event) => {
+        if (event.sourceId !== CLUSTER_SOURCE_ID || !event.isSourceLoaded) return;
+        attemptInitialFit();
+        if (hasFitInitialBounds.current) {
+          map.off('data', handleSourceData);
+        }
+      };
+
+      attemptInitialFit();
+      map.on('data', handleSourceData);
     });
 
     return () => {
       map.off('styledata', handleStyle);
+      if (handleSourceData) {
+        map.off('data', handleSourceData);
+      }
       map.remove();
       mapRef.current = null;
       popupRef.current = null;
@@ -340,27 +377,6 @@ export default function RestaurantMap({ restaurants, userLatLng }) {
     const source = map.getSource(CLUSTER_SOURCE_ID);
     if (source && source.setData) {
       source.setData(geoJson);
-    }
-  }, [geoJson]);
-
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-
-    const features = geoJson.features;
-    if (!features.length || hasFitInitialBounds.current) return;
-
-    const bounds = features.reduce((acc, feature) => {
-      const [lng, lat] = feature.geometry.coordinates;
-      if (!acc) {
-        return new maplibregl.LngLatBounds([lng, lat], [lng, lat]);
-      }
-      return acc.extend([lng, lat]);
-    }, null);
-
-    if (bounds) {
-      hasFitInitialBounds.current = true;
-      map.fitBounds(bounds, { padding: 60, maxZoom: 14 });
     }
   }, [geoJson]);
 

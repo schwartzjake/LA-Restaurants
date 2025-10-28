@@ -270,7 +270,7 @@ export default function RestaurantMap({ restaurants, userLatLng }) {
         const coordinates = feature.geometry.coordinates.slice();
 
         if (!popupRef.current) {
-          popupRef.current = new maplibregl.Popup({ closeButton: true, maxWidth: '320px' });
+          popupRef.current = new maplibregl.Popup({ closeButton: true, closeOnClick: true, maxWidth: '320px' });
         }
 
         popupRef.current

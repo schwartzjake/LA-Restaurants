@@ -263,8 +263,10 @@ export default function RestaurantMap({ restaurants, userLatLng }) {
           'text-font': ['Open Sans Semibold'],
           'text-size': 12,
           'text-offset': [0, -1.2],
-          'text-anchor': 'bottom',
+          'text-variable-anchor': ['top', 'bottom', 'left', 'right'],
+          'text-justify': 'auto',
           'text-allow-overlap': false,
+          'text-padding': 4,
         },
         paint: {
           'text-color': stylePreferences?.overrides?.labelColor ?? '#F2F2F2',

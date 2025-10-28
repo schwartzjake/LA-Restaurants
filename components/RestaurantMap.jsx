@@ -263,7 +263,7 @@ export default function RestaurantMap({ restaurants, userLatLng }) {
           'text-font': ['Open Sans Semibold'],
           'text-size': 12,
           'text-anchor': 'left',
-          'text-variable-anchor': ['right', 'top', 'bottom', 'left'],
+          'text-variable-anchor': ['left', 'top', 'bottom', 'right'],
           'text-radial-offset': 1.1,
           'text-offset': [0, -0.4],
           'text-justify': 'auto',

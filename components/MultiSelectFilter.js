@@ -59,15 +59,15 @@ export default function MultiSelectFilter({
       const left = Math.min(rect.left, viewportWidth - rect.width - padding);
       const width = rect.width;
 
-      if (availableBelow >= 200 || availableBelow >= availableAbove) {
-        const maxHeight = Math.min(Math.max(availableBelow, 200), 360);
-        const top = Math.min(rect.bottom + gap, viewportHeight - padding - maxHeight);
-        setMenuPlacement({ top, left, width, maxHeight, render: true, drop: 'down' });
-      } else {
-        const maxHeight = Math.min(Math.max(availableAbove, 180), 360);
-        const top = Math.max(padding, rect.top - maxHeight - gap);
-        setMenuPlacement({ top, left, width, maxHeight, render: true, drop: 'up' });
+      let top = rect.bottom + gap;
+      let maxHeight = Math.min(360, Math.max(80, viewportHeight - padding - top));
+
+      if (maxHeight <= 0) {
+        top = Math.max(padding, viewportHeight - padding - 240);
+        maxHeight = Math.min(360, Math.max(120, viewportHeight - padding - top));
       }
+
+      setMenuPlacement({ top, left, width, maxHeight, render: true, drop: 'down' });
     };
 
     updatePlacement();
@@ -91,6 +91,15 @@ export default function MultiSelectFilter({
     if (!open) {
       setMenuPlacement(prev => ({ ...prev, render: false }));
     }
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const handleScroll = () => {
+      setOpen(false);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll, { passive: true });
   }, [open]);
 
   const add = item => {

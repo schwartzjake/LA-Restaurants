@@ -58,14 +58,12 @@ export default function Home() {
       const y = window.scrollY;
       const delta = y - lastY;
 
-      if (y <= 200) {
+      if (y <= 120) {
         setHideFilters(false);
         setScrolledPastHeader(false);
       } else if (delta > 20) {
         setHideFilters(true);
         setScrolledPastHeader(true);
-      } else if (delta < -65) {
-        setHideFilters(false);
       }
 
       lastY = y;

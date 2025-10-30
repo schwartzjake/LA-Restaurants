@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import { MAP_STYLE_CONFIG } from '../lib/mapStyleConfig';
+import MultiSelectFilter from './MultiSelectFilter';
 
 const GEOAPIFY_KEY = (process.env.NEXT_PUBLIC_GEOAPIFY_KEY || '').trim();
 const DEFAULT_CENTER = [-118.2437, 34.0522]; // Downtown LA fallback
@@ -139,7 +140,14 @@ const buildPopupHtml = ({ name, cuisines, googleUrl }) => {
 
 const stylePreferences = MAP_STYLE_CONFIG || {};
 
-export default function RestaurantMap({ restaurants, userLatLng, isVisible = true }) {
+export default function RestaurantMap({
+  restaurants,
+  userLatLng,
+  isVisible = true,
+  onChangeViewMode,
+  filters = {},
+}) {
+  const wrapperRef = useRef(null);
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const popupRef = useRef(null);
@@ -147,10 +155,24 @@ export default function RestaurantMap({ restaurants, userLatLng, isVisible = tru
   const isFullscreenRef = useRef(false);
   const setFullscreenRef = useRef(null);
   const [styleUrl, setStyleUrl] = useState(null);
+  const [isFilterOverlayOpen, setFilterOverlayOpen] = useState(false);
 
   const geoJson = useMemo(() => buildGeoJson(restaurants), [restaurants]);
   const geoJsonRef = useRef(geoJson);
   const initialGeoJsonRef = useRef(null);
+  const filterButtonRef = useRef(null);
+
+  const {
+    allCuisines = [],
+    selCuisines = [],
+    setSelCuisines,
+    allHoods = [],
+    selHoods = [],
+    setSelHoods,
+  } = filters;
+
+  const canEditFilters =
+    typeof setSelCuisines === 'function' && typeof setSelHoods === 'function';
 
   useEffect(() => {
     geoJsonRef.current = geoJson;
@@ -193,7 +215,7 @@ export default function RestaurantMap({ restaurants, userLatLng, isVisible = tru
     map.on('styledata', handleStyle);
 
     let handleSourceData;
-    let fullscreenControl;
+    let mobileControls;
 
     const disablePageScroll = () => {
       document.body.classList.add('map-fullscreen-locked');
@@ -204,26 +226,16 @@ export default function RestaurantMap({ restaurants, userLatLng, isVisible = tru
     };
 
     const setFullscreen = (nextState) => {
-      if (!containerRef.current) return;
+      if (!wrapperRef.current) return;
       const isFullscreen = Boolean(nextState);
       isFullscreenRef.current = isFullscreen;
-      containerRef.current.classList.toggle('fullscreen-map', isFullscreen);
-      if (fullscreenControl?.button) {
-        fullscreenControl.button.innerHTML = isFullscreen
-          ? '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-minimize2" aria-hidden="true"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" x2="21" y1="10" y2="3"></line><line x1="3" x2="10" y1="21" y2="14"></line></svg>'
-          : '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-maximize2" aria-hidden="true"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" x2="14" y1="3" y2="10"></line><line x1="3" x2="10" y1="21" y2="14"></line></svg>';
-        fullscreenControl.button.setAttribute('aria-pressed', String(isFullscreen));
-      }
+      wrapperRef.current.classList.toggle('fullscreen-map', isFullscreen);
       if (isFullscreen) {
         disablePageScroll();
       } else {
         enablePageScroll();
       }
       requestAnimationFrame(() => map.resize());
-    };
-
-    const toggleFullscreen = () => {
-      setFullscreen(!isFullscreenRef.current);
     };
 
     setFullscreenRef.current = setFullscreen;
@@ -398,30 +410,62 @@ export default function RestaurantMap({ restaurants, userLatLng, isVisible = tru
       if (typeof window !== 'undefined') {
         const prefersMobile = window.matchMedia('(max-width: 768px)').matches;
         if (prefersMobile) {
-          fullscreenControl = {
+          const slidersIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sliders-horizontal" aria-hidden="true"><line x1="21" x2="14" y1="4" y2="4"></line><line x1="10" x2="3" y1="4" y2="4"></line><line x1="21" x2="12" y1="12" y2="12"></line><line x1="8" x2="3" y1="12" y2="12"></line><line x1="21" x2="16" y1="20" y2="20"></line><line x1="12" x2="3" y1="20" y2="20"></line><line x1="14" x2="14" y1="2" y2="6"></line><line x1="8" x2="8" y1="10" y2="14"></line><line x1="16" x2="16" y1="18" y2="22"></line></svg>';
+          const gridIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-layout-grid" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>';
+          const listIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-list" aria-hidden="true"><path d="M3 12h.01"></path><path d="M3 18h.01"></path><path d="M3 6h.01"></path><path d="M8 12h13"></path><path d="M8 18h13"></path><path d="M8 6h13"></path></svg>';
+
+          const buttons = [];
+
+          mobileControls = {
             onAdd(ctrlMap) {
               this._map = ctrlMap;
               const container = document.createElement('div');
-              container.className = 'maplibregl-ctrl maplibregl-ctrl-group';
-              const button = document.createElement('button');
-              button.type = 'button';
-              button.className = 'maplibre-fullscreen-toggle';
-              button.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-maximize2" aria-hidden="true"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" x2="14" y1="3" y2="10"></line><line x1="3" x2="10" y1="21" y2="14"></line></svg>';
-              button.setAttribute('aria-label', 'Toggle map fullscreen');
-              button.setAttribute('aria-pressed', 'false');
-              button.addEventListener('click', toggleFullscreen);
-              container.appendChild(button);
-              fullscreenControl.button = button;
+              container.className = 'maplibregl-ctrl maplibregl-ctrl-group maplibre-mobile-controls';
+
+              const createButton = (label, icon, handler) => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'maplibre-map-icon-button';
+                button.innerHTML = icon;
+                button.setAttribute('aria-label', label);
+                button.addEventListener('click', handler);
+                container.appendChild(button);
+                buttons.push({ button, handler });
+                return button;
+              };
+
+              if (canEditFilters) {
+                const handleToggleFilters = () => {
+                  setFilterOverlayOpen((prev) => !prev);
+                };
+                const filterButton = createButton('Toggle filters', slidersIcon, handleToggleFilters);
+                filterButtonRef.current = filterButton;
+              }
+
+              if (typeof onChangeViewMode === 'function') {
+                createButton('Card view', gridIcon, () => {
+                  setFilterOverlayOpen(false);
+                  onChangeViewMode('card');
+                });
+                createButton('List view', listIcon, () => {
+                  setFilterOverlayOpen(false);
+                  onChangeViewMode('list');
+                });
+              }
+
               return container;
             },
             onRemove() {
-              if (fullscreenControl?.button) {
-                fullscreenControl.button.removeEventListener('click', toggleFullscreen);
-              }
+              buttons.forEach(({ button, handler }) => {
+                button.removeEventListener('click', handler);
+              });
+              buttons.length = 0;
+              filterButtonRef.current = null;
               this._map = undefined;
             },
           };
-          map.addControl(fullscreenControl, 'top-right');
+
+          map.addControl(mobileControls, 'top-right');
         }
       }
     });
@@ -431,13 +475,13 @@ export default function RestaurantMap({ restaurants, userLatLng, isVisible = tru
       if (handleSourceData) {
         map.off('data', handleSourceData);
       }
-      if (fullscreenControl) {
-        map.removeControl(fullscreenControl);
+      if (mobileControls) {
+        map.removeControl(mobileControls);
       }
       if (isFullscreenRef.current) {
         enablePageScroll();
-        if (containerRef.current) {
-          containerRef.current.classList.remove('fullscreen-map');
+        if (wrapperRef.current) {
+          wrapperRef.current.classList.remove('fullscreen-map');
         }
       }
       map.remove();
@@ -451,10 +495,19 @@ export default function RestaurantMap({ restaurants, userLatLng, isVisible = tru
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
+    const isMobile = typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches;
+
     if (isVisible) {
-      requestAnimationFrame(() => map.resize());
-    } else if (isFullscreenRef.current && setFullscreenRef.current) {
-      setFullscreenRef.current(false);
+      if (isMobile && setFullscreenRef.current && !isFullscreenRef.current) {
+        setFullscreenRef.current(true);
+      } else {
+        requestAnimationFrame(() => map.resize());
+      }
+    } else {
+      setFilterOverlayOpen(false);
+      if (isFullscreenRef.current && setFullscreenRef.current) {
+        setFullscreenRef.current(false);
+      }
     }
   }, [isVisible]);
 
@@ -468,10 +521,23 @@ export default function RestaurantMap({ restaurants, userLatLng, isVisible = tru
   }, [geoJson]);
 
   useEffect(() => {
+    if (filterButtonRef.current) {
+      filterButtonRef.current.setAttribute('aria-pressed', String(isFilterOverlayOpen));
+    }
+  }, [isFilterOverlayOpen]);
+
+  useEffect(() => {
     const map = mapRef.current;
     if (!map || !userLatLng || userLatLng.length !== 2) return;
     map.easeTo({ center: [userLatLng[1], userLatLng[0]], zoom: 13, duration: 1200 });
   }, [userLatLng]);
+
+  const closeFilterOverlay = () => setFilterOverlayOpen(false);
+  const clearFilters = () => {
+    if (!canEditFilters) return;
+    setSelCuisines([]);
+    setSelHoods([]);
+  };
 
   if (!GEOAPIFY_KEY) {
     return (
@@ -486,5 +552,43 @@ export default function RestaurantMap({ restaurants, userLatLng, isVisible = tru
     );
   }
 
-  return <div ref={containerRef} className="map-wrapper" role="presentation" />;
+  return (
+    <div ref={wrapperRef} className="map-wrapper" role="presentation">
+      <div ref={containerRef} className="map-canvas" />
+      {canEditFilters && (
+        <div className={`map-filter-overlay ${isFilterOverlayOpen ? 'open' : ''}`} aria-hidden={!isFilterOverlayOpen}>
+          <div className="map-filter-overlay__backdrop" onClick={closeFilterOverlay} />
+          <div className="map-filter-overlay__sheet">
+            <div className="map-filter-overlay__header">
+              <span className="map-filter-overlay__title">Filters</span>
+              <button type="button" className="map-filter-overlay__close" onClick={closeFilterOverlay} aria-label="Close filters">
+                &times;
+              </button>
+            </div>
+            <div className="map-filter-overlay__body">
+              <MultiSelectFilter
+                options={allCuisines}
+                value={selCuisines}
+                onChange={setSelCuisines}
+                placeholder="Select Cuisine(s)"
+                inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-gray-600 focus:border-white"
+              />
+              <MultiSelectFilter
+                options={allHoods}
+                value={selHoods}
+                onChange={setSelHoods}
+                placeholder="Select Neighborhood(s)"
+                inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-gray-600 focus:border-white"
+              />
+              <div className="map-filter-overlay__actions">
+                <button type="button" className="map-filter-overlay__clear" onClick={clearFilters}>
+                  Clear All
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }

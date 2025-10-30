@@ -195,6 +195,15 @@ export default function Home() {
           restaurants={filtered}
           userLatLng={userLatLng || null}
           isVisible={viewMode === 'map'}
+          onChangeViewMode={setViewMode}
+          filters={{
+            allCuisines,
+            selCuisines,
+            setSelCuisines,
+            allHoods,
+            selHoods,
+            setSelHoods,
+          }}
         />
       </div>
       {viewMode === 'card' && (

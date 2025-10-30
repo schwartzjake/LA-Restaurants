@@ -46,8 +46,18 @@ body.map-fullscreen-locked {
   background: transparent !important;
   box-shadow: none !important;
   display: inline-flex !important;
+  flex-direction: column;
   gap: 6px;
   padding: 0 !important;
+}
+
+.maplibre-mobile-controls__view-group {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  background: #ffffff;
+  overflow: hidden;
 }
 
 .map-filter-overlay {
@@ -69,14 +79,16 @@ body.map-fullscreen-locked {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 0;
+  top: 0;
   background: rgba(13, 13, 13, 0.98);
-  border-top-left-radius: 20px;
-  border-top-right-radius: 20px;
-  padding: 24px 20px 28px;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+  padding: 24px 20px calc(28px + env(safe-area-inset-bottom, 0px));
   transition: transform 0.25s ease;
-  transform: translateY(100%);
+  transform: translateY(-100%);
   pointer-events: auto;
+  max-height: 75vh;
+  overflow-y: auto;
 }
 
 .map-filter-overlay.open {
@@ -295,4 +307,32 @@ body.map-fullscreen-locked {
 .maplibre-map-icon-button svg {
   width: 16px;
   height: 16px;
+}
+
+.maplibre-map-icon-button--view {
+  border-radius: 0 !important;
+  width: 38px !important;
+  height: 38px !important;
+  border: none !important;
+}
+
+.maplibre-map-icon-button--view-top {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12) !important;
+}
+
+.maplibre-map-icon-button--view.active {
+  background-color: #e9e9ec !important;
+  color: #111111 !important;
+}
+
+.maplibre-map-icon-button--filter {
+  background-color: #592025 !important;
+  border-color: rgba(0, 0, 0, 0.18) !important;
+  color: #ffffff !important;
+  width: 38px !important;
+  height: 38px !important;
+}
+
+.maplibre-map-icon-button--filter:hover {
+  background-color: #6d2b2f !important;
 }

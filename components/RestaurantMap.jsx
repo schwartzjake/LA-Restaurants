@@ -145,6 +145,7 @@ export default function RestaurantMap({
   userLatLng,
   isVisible = true,
   onChangeViewMode,
+  currentViewMode = 'map',
   filters = {},
 }) {
   const wrapperRef = useRef(null);
@@ -156,6 +157,7 @@ export default function RestaurantMap({
   const setFullscreenRef = useRef(null);
   const [styleUrl, setStyleUrl] = useState(null);
   const [isFilterOverlayOpen, setFilterOverlayOpen] = useState(false);
+  const viewButtonsRef = useRef([]);
 
   const geoJson = useMemo(() => buildGeoJson(restaurants), [restaurants]);
   const geoJsonRef = useRef(geoJson);
@@ -410,7 +412,7 @@ export default function RestaurantMap({
       if (typeof window !== 'undefined') {
         const prefersMobile = window.matchMedia('(max-width: 768px)').matches;
         if (prefersMobile) {
-          const slidersIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sliders-horizontal" aria-hidden="true"><line x1="21" x2="14" y1="4" y2="4"></line><line x1="10" x2="3" y1="4" y2="4"></line><line x1="21" x2="12" y1="12" y2="12"></line><line x1="8" x2="3" y1="12" y2="12"></line><line x1="21" x2="16" y1="20" y2="20"></line><line x1="12" x2="3" y1="20" y2="20"></line><line x1="14" x2="14" y1="2" y2="6"></line><line x1="8" x2="8" y1="10" y2="14"></line><line x1="16" x2="16" y1="18" y2="22"></line></svg>';
+          const slidersIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sliders-horizontal" aria-hidden="true"><line x1="21" x2="14" y1="4" y2="4"></line><line x1="10" x2="3" y1="4" y2="4"></line><line x1="21" x2="12" y1="12" y2="12"></line><line x1="8" x2="3" y1="12" y2="12"></line><line x1="21" x2="16" y1="20" y2="20"></line><line x1="12" x2="3" y1="20" y2="20"></line><line x1="14" x2="14" y1="2" y2="6"></line><line x1="8" x2="8" y1="10" y2="14"></line><line x1="16" x2="16" y1="18" y2="22"></line></svg>';
           const gridIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-layout-grid" aria-hidden="true"><rect width="7" height="7" x="3" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="3" rx="1"></rect><rect width="7" height="7" x="14" y="14" rx="1"></rect><rect width="7" height="7" x="3" y="14" rx="1"></rect></svg>';
           const listIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-list" aria-hidden="true"><path d="M3 12h.01"></path><path d="M3 18h.01"></path><path d="M3 6h.01"></path><path d="M8 12h13"></path><path d="M8 18h13"></path><path d="M8 6h13"></path></svg>';
 
@@ -422,35 +424,47 @@ export default function RestaurantMap({
               const container = document.createElement('div');
               container.className = 'maplibregl-ctrl maplibregl-ctrl-group maplibre-mobile-controls';
 
-              const createButton = (label, icon, handler) => {
+              const viewGroup = document.createElement('div');
+              viewGroup.className = 'maplibre-mobile-controls__view-group';
+
+              const createButton = (label, icon, handler, extraClass = '') => {
                 const button = document.createElement('button');
                 button.type = 'button';
-                button.className = 'maplibre-map-icon-button';
+                button.className = `maplibre-map-icon-button ${extraClass}`.trim();
                 button.innerHTML = icon;
                 button.setAttribute('aria-label', label);
                 button.addEventListener('click', handler);
-                container.appendChild(button);
                 buttons.push({ button, handler });
                 return button;
               };
+
+              if (typeof onChangeViewMode === 'function') {
+                const cardHandler = () => {
+                  setFilterOverlayOpen(false);
+                  onChangeViewMode('card');
+                };
+                const listHandler = () => {
+                  setFilterOverlayOpen(false);
+                  onChangeViewMode('list');
+                };
+                const cardButton = createButton('Card view', gridIcon, cardHandler, 'maplibre-map-icon-button--view maplibre-map-icon-button--view-top');
+                const listButton = createButton('List view', listIcon, listHandler, 'maplibre-map-icon-button--view maplibre-map-icon-button--view-bottom');
+                viewButtonsRef.current = [
+                  { view: 'card', button: cardButton },
+                  { view: 'list', button: listButton },
+                ];
+                viewGroup.appendChild(cardButton);
+                viewGroup.appendChild(listButton);
+                container.appendChild(viewGroup);
+              }
 
               if (canEditFilters) {
                 const handleToggleFilters = () => {
                   setFilterOverlayOpen((prev) => !prev);
                 };
-                const filterButton = createButton('Toggle filters', slidersIcon, handleToggleFilters);
+                const filterButton = createButton('Toggle filters', slidersIcon, handleToggleFilters, 'maplibre-map-icon-button--filter');
+                container.appendChild(filterButton);
                 filterButtonRef.current = filterButton;
-              }
-
-              if (typeof onChangeViewMode === 'function') {
-                createButton('Card view', gridIcon, () => {
-                  setFilterOverlayOpen(false);
-                  onChangeViewMode('card');
-                });
-                createButton('List view', listIcon, () => {
-                  setFilterOverlayOpen(false);
-                  onChangeViewMode('list');
-                });
               }
 
               return container;
@@ -460,12 +474,16 @@ export default function RestaurantMap({
                 button.removeEventListener('click', handler);
               });
               buttons.length = 0;
+              viewButtonsRef.current = [];
               filterButtonRef.current = null;
               this._map = undefined;
             },
           };
 
           map.addControl(mobileControls, 'top-right');
+          if (isVisible) {
+            requestAnimationFrame(() => setFullscreen(true));
+          }
         }
       }
     });
@@ -519,6 +537,18 @@ export default function RestaurantMap({
       source.setData(geoJson);
     }
   }, [geoJson]);
+
+  useEffect(() => {
+    const active = currentViewMode;
+    viewButtonsRef.current.forEach(({ view, button }) => {
+      if (!button) return;
+      if (view === active) {
+        button.classList.add('active');
+      } else {
+        button.classList.remove('active');
+      }
+    });
+  }, [currentViewMode]);
 
   useEffect(() => {
     if (filterButtonRef.current) {

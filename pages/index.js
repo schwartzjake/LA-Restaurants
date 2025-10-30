@@ -196,6 +196,7 @@ export default function Home() {
           userLatLng={userLatLng || null}
           isVisible={viewMode === 'map'}
           onChangeViewMode={setViewMode}
+          currentViewMode={viewMode}
           filters={{
             allCuisines,
             selCuisines,

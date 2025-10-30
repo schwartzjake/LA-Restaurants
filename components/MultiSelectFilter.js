@@ -11,6 +11,7 @@ export default function MultiSelectFilter({
   placeholder = 'Select…',
   inputClassName = '',
   usePortal = false,
+  clampToViewport = false,
 }) {
   const [query, setQuery] = useState('');
   const [open,  setOpen]  = useState(false);
@@ -20,6 +21,7 @@ export default function MultiSelectFilter({
   const [menuPlacement, setMenuPlacement] = useState({ top: 0, left: 0, width: 0, maxHeight: 240, render: false });
   const [portalEl, setPortalEl] = useState(null);
   const keyboardEngagedRef = useRef(false);
+  const [inlineMaxHeight, setInlineMaxHeight] = useState(null);
 
   /* Close dropdown on outside click */
   useEffect(() => {
@@ -97,6 +99,48 @@ export default function MultiSelectFilter({
       viewport?.removeEventListener('scroll', handleViewportScroll);
     };
   }, [usePortal, open, menu.length]);
+
+  useLayoutEffect(() => {
+    if (!clampToViewport || usePortal || !open || !boxRef.current) return;
+
+    const updateInlineHeight = () => {
+      const rect = boxRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const viewport = window.visualViewport;
+      const viewportHeight = (viewport?.height ?? window.innerHeight) - (viewport?.offsetTop ?? 0);
+      const padding = 12;
+      let maxHeight = viewportHeight - rect.bottom - padding;
+
+      if (maxHeight < 140) {
+        maxHeight = Math.min(320, Math.max(140, viewportHeight - Math.max(rect.top, 0) - padding));
+      }
+
+      maxHeight = Math.max(120, Math.min(360, maxHeight));
+      setInlineMaxHeight(maxHeight);
+    };
+
+    updateInlineHeight();
+
+    const viewport = window.visualViewport;
+    const handleWindowResize = () => updateInlineHeight();
+    const handleWindowScroll = () => updateInlineHeight();
+
+    window.addEventListener('resize', handleWindowResize);
+    window.addEventListener('scroll', handleWindowScroll, { passive: true });
+    viewport?.addEventListener('resize', handleWindowResize);
+    viewport?.addEventListener('scroll', handleWindowScroll);
+
+    return () => {
+      window.removeEventListener('resize', handleWindowResize);
+      window.removeEventListener('scroll', handleWindowScroll);
+      viewport?.removeEventListener('resize', handleWindowResize);
+      viewport?.removeEventListener('scroll', handleWindowScroll);
+    };
+  }, [clampToViewport, usePortal, open]);
+
+  useEffect(() => {
+    if (!open) setInlineMaxHeight(null);
+  }, [open]);
 
   useEffect(() => {
     if (!usePortal) return;
@@ -191,6 +235,7 @@ export default function MultiSelectFilter({
       {!usePortal && open && menu.length > 0 && (
         <ul
           ref={listRef}
+          style={clampToViewport && inlineMaxHeight ? { maxHeight: inlineMaxHeight } : undefined}
           className="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded border border-gray-400 bg-white text-black shadow-lg"
         >
           {menu.map((item, index) => (

@@ -67,8 +67,7 @@
 }
 
 .maplibregl-popup-tip {
-  border-top-color: rgba(13, 13, 13, 0.95) !important;
-  border-bottom-color: rgba(13, 13, 13, 0.95) !important;
+  border-color: transparent !important;
 }
 
 .maplibregl-popup-anchor-top .maplibregl-popup-tip,

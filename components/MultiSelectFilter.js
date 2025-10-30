@@ -62,6 +62,10 @@ export default function MultiSelectFilter({
       const left = Math.min(rect.left, viewportWidth - rect.width - padding);
       const width = rect.width;
 
+      const keyboardHeightThreshold = 40;
+      const isKeyboardShowing = viewport ? viewport.height < window.innerHeight - keyboardHeightThreshold : false;
+      keyboardEngagedRef.current = isKeyboardShowing;
+
       let top = rect.bottom + gap;
       let maxHeight = Math.min(360, Math.max(80, viewportHeight - padding - top));
 

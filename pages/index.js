@@ -190,14 +190,17 @@ export default function Home() {
         <p className="mt-4 text-xs text-gray-400">{loading ? 'Loading…' : error ? 'Error loading restaurants.' : `Showing ${filtered.length} restaurant${filtered.length === 1 ? '' : 's'}`}</p>
       </section>
 
-      {viewMode === 'map' ? (
+      <div className={viewMode === 'map' ? 'block' : 'hidden'} aria-hidden={viewMode !== 'map'}>
         <RestaurantMap
           restaurants={filtered}
           userLatLng={userLatLng || null}
+          isVisible={viewMode === 'map'}
         />
-      ) : viewMode === 'card' ? (
+      </div>
+      {viewMode === 'card' && (
         <RestaurantGrid list={filtered} driveTimes={driveTimes} badge={badge} />
-      ) : (
+      )}
+      {viewMode === 'list' && (
         <RestaurantList list={filtered} driveTimes={driveTimes} badge={badge} />
       )}
     </main>

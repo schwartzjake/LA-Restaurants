@@ -139,11 +139,13 @@ const buildPopupHtml = ({ name, cuisines, googleUrl }) => {
 
 const stylePreferences = MAP_STYLE_CONFIG || {};
 
-export default function RestaurantMap({ restaurants, userLatLng }) {
+export default function RestaurantMap({ restaurants, userLatLng, isVisible = true }) {
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const popupRef = useRef(null);
   const hasFitInitialBounds = useRef(false);
+  const isFullscreenRef = useRef(false);
+  const setFullscreenRef = useRef(null);
   const [styleUrl, setStyleUrl] = useState(null);
 
   const geoJson = useMemo(() => buildGeoJson(restaurants), [restaurants]);
@@ -192,7 +194,6 @@ export default function RestaurantMap({ restaurants, userLatLng }) {
 
     let handleSourceData;
     let fullscreenControl;
-    let isFullscreen = false;
 
     const disablePageScroll = () => {
       document.body.classList.add('map-fullscreen-locked');
@@ -204,7 +205,8 @@ export default function RestaurantMap({ restaurants, userLatLng }) {
 
     const setFullscreen = (nextState) => {
       if (!containerRef.current) return;
-      isFullscreen = nextState;
+      const isFullscreen = Boolean(nextState);
+      isFullscreenRef.current = isFullscreen;
       containerRef.current.classList.toggle('fullscreen-map', isFullscreen);
       if (fullscreenControl?.button) {
         fullscreenControl.button.innerHTML = isFullscreen
@@ -221,8 +223,10 @@ export default function RestaurantMap({ restaurants, userLatLng }) {
     };
 
     const toggleFullscreen = () => {
-      setFullscreen(!isFullscreen);
+      setFullscreen(!isFullscreenRef.current);
     };
+
+    setFullscreenRef.current = setFullscreen;
 
     const attemptInitialFit = () => {
       if (hasFitInitialBounds.current) return;
@@ -430,7 +434,7 @@ export default function RestaurantMap({ restaurants, userLatLng }) {
       if (fullscreenControl) {
         map.removeControl(fullscreenControl);
       }
-      if (isFullscreen) {
+      if (isFullscreenRef.current) {
         enablePageScroll();
         if (containerRef.current) {
           containerRef.current.classList.remove('fullscreen-map');
@@ -439,8 +443,20 @@ export default function RestaurantMap({ restaurants, userLatLng }) {
       map.remove();
       mapRef.current = null;
       popupRef.current = null;
+      setFullscreenRef.current = null;
+      isFullscreenRef.current = false;
     };
   }, [styleUrl]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    if (isVisible) {
+      requestAnimationFrame(() => map.resize());
+    } else if (isFullscreenRef.current && setFullscreenRef.current) {
+      setFullscreenRef.current(false);
+    }
+  }, [isVisible]);
 
   useEffect(() => {
     const map = mapRef.current;

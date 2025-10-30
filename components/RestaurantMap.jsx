@@ -607,6 +607,7 @@ export default function RestaurantMap({
                   onChange={setSelCuisines}
                   placeholder="Select Cuisine(s)"
                   inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-gray-600 focus:border-white"
+                  usePortal
                 />
                 <MultiSelectFilter
                   options={allHoods}
@@ -614,6 +615,7 @@ export default function RestaurantMap({
                   onChange={setSelHoods}
                   placeholder="Select Neighborhood(s)"
                   inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-gray-600 focus:border-white"
+                  usePortal
                 />
               </div>
               <div className="map-filter-overlay__actions">

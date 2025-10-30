@@ -10,6 +10,7 @@ export default function MultiSelectFilter({
   onChange,
   placeholder = 'Select…',
   inputClassName = '',
+  usePortal = false,
 }) {
   const [query, setQuery] = useState('');
   const [open,  setOpen]  = useState(false);
@@ -34,6 +35,7 @@ export default function MultiSelectFilter({
     .sort();
 
   useEffect(() => {
+    if (!usePortal) return undefined;
     if (typeof window === 'undefined') return undefined;
     const el = document.createElement('div');
     el.className = 'multiselect-portal';
@@ -42,10 +44,10 @@ export default function MultiSelectFilter({
     return () => {
       document.body.removeChild(el);
     };
-  }, []);
+  }, [usePortal]);
 
   useLayoutEffect(() => {
-    if (!open || !boxRef.current) return;
+    if (!usePortal || !open || !boxRef.current) return;
 
     const updatePlacement = () => {
       const rect = boxRef.current?.getBoundingClientRect();
@@ -94,17 +96,18 @@ export default function MultiSelectFilter({
       viewport?.removeEventListener('resize', handleViewportResize);
       viewport?.removeEventListener('scroll', handleViewportScroll);
     };
-  }, [open, menu.length]);
+  }, [usePortal, open, menu.length]);
 
   useEffect(() => {
+    if (!usePortal) return;
     if (!open) {
       setMenuPlacement(prev => ({ ...prev, render: false }));
       keyboardEngagedRef.current = false;
     }
-  }, [open]);
+  }, [usePortal, open]);
 
   useEffect(() => {
-    if (!open) return undefined;
+    if (!usePortal || !open) return undefined;
     const handleScroll = () => {
       if (!keyboardEngagedRef.current) {
         setOpen(false);
@@ -112,7 +115,7 @@ export default function MultiSelectFilter({
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll, { passive: true });
-  }, [open]);
+  }, [usePortal, open]);
 
   const add = item => {
     onChange([...value, item]);
@@ -185,7 +188,27 @@ export default function MultiSelectFilter({
       </div>
 
       {/* Dropdown list */}
-      {open && menu.length > 0 && menuPlacement.render && portalEl &&
+      {!usePortal && open && menu.length > 0 && (
+        <ul
+          ref={listRef}
+          className="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded border border-gray-400 bg-white text-black shadow-lg"
+        >
+          {menu.map((item, index) => (
+            <li
+              key={item}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                add(item);
+              }}
+              className={`cursor-pointer px-3 py-1 text-sm uppercase transition-colors duration-150 ${index === highlightedIndex ? 'bg-yellow-300 font-bold' : 'hover:bg-yellow-100'}`}
+            >
+              {item}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {usePortal && open && menu.length > 0 && menuPlacement.render && portalEl &&
         createPortal(
           <ul
             ref={listRef}

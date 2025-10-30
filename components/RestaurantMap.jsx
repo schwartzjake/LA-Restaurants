@@ -214,7 +214,7 @@ export default function RestaurantMap({ restaurants, userLatLng }) {
         type: 'geojson',
         data: geoJsonRef.current,
         cluster: true,
-        clusterRadius: 28,
+        clusterRadius: 20,
         clusterMaxZoom: 12,
         generateId: true,
       });

@@ -159,6 +159,17 @@ export default function RestaurantMap({
   const [isFilterOverlayOpen, setFilterOverlayOpen] = useState(false);
   const viewButtonsRef = useRef([]);
 
+  const syncViewButtons = (mode) => {
+    viewButtonsRef.current.forEach(({ view, button }) => {
+      if (!button) return;
+      if (view === mode) {
+        button.classList.add('active');
+      } else {
+        button.classList.remove('active');
+      }
+    });
+  };
+
   const geoJson = useMemo(() => buildGeoJson(restaurants), [restaurants]);
   const geoJsonRef = useRef(geoJson);
   const initialGeoJsonRef = useRef(null);
@@ -453,6 +464,7 @@ export default function RestaurantMap({
                   { view: 'card', button: cardButton },
                   { view: 'list', button: listButton },
                 ];
+                syncViewButtons(currentViewMode);
                 viewGroup.appendChild(cardButton);
                 viewGroup.appendChild(listButton);
                 container.appendChild(viewGroup);
@@ -481,7 +493,7 @@ export default function RestaurantMap({
           };
 
           map.addControl(mobileControls, 'top-right');
-          if (isVisible) {
+          if (isVisible && !isFullscreenRef.current) {
             requestAnimationFrame(() => setFullscreen(true));
           }
         }
@@ -539,15 +551,7 @@ export default function RestaurantMap({
   }, [geoJson]);
 
   useEffect(() => {
-    const active = currentViewMode;
-    viewButtonsRef.current.forEach(({ view, button }) => {
-      if (!button) return;
-      if (view === active) {
-        button.classList.add('active');
-      } else {
-        button.classList.remove('active');
-      }
-    });
+    syncViewButtons(currentViewMode);
   }, [currentViewMode]);
 
   useEffect(() => {

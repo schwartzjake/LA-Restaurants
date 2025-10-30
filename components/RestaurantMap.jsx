@@ -619,6 +619,7 @@ export default function RestaurantMap({
                 />
               </div>
               <div className="map-filter-overlay__actions">
+                <span className="map-filter-overlay__count">{`Showing ${restaurants.length} restaurant${restaurants.length === 1 ? '' : 's'}`}</span>
                 <button type="button" className="map-filter-overlay__clear" onClick={clearFilters}>
                   Clear All
                 </button>

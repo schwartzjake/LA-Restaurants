@@ -144,7 +144,9 @@ body.map-fullscreen-locked {
 
 .map-filter-overlay__actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
   margin-top: 12px;
 }
 
@@ -155,6 +157,13 @@ body.map-fullscreen-locked {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
+}
+
+.map-filter-overlay__count {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(242, 242, 242, 0.75);
 }
 
 @media (min-width: 768px) {

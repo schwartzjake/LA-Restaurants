@@ -121,6 +121,7 @@ export default function MultiSelectFilter({
     onChange([...value, item]);
     setQuery('');
     setOpen(true);
+    keyboardEngagedRef.current = Boolean(window.visualViewport && window.visualViewport.height < window.innerHeight);
     setTimeout(() => {
       inputRef.current?.focus();
     }, 0); // ensure DOM update first

@@ -87,20 +87,7 @@ export default function Home() {
   const badge = s => (s <= 1200 ? 'text-green-400' : s <= 2100 ? 'text-yellow-400' : 'text-red-500')
 
   const fetchDriveTimes = async () => {
-    console.log('fetchDriveTimes triggered', { address, ORS_KEY, calculating });
-    if (!address.trim()) {
-      console.log('Skipping: empty address');
-      return;
-    }
-    if (!ORS_KEY) {
-      console.log('Skipping: missing ORS key');
-      alert('OpenRouteService key missing. Check NEXT_PUBLIC_ORS_API_KEY.');
-      return;
-    }
-    if (calculating) {
-      console.log('Skipping: already calculating');
-      return;
-    }
+    if (!address.trim() || !ORS_KEY || calculating) return
     setCalculating(true)
     try {
       const origin = await geocode(address)

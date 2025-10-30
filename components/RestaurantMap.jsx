@@ -207,7 +207,9 @@ export default function RestaurantMap({ restaurants, userLatLng }) {
       isFullscreen = nextState;
       containerRef.current.classList.toggle('fullscreen-map', isFullscreen);
       if (fullscreenControl?.button) {
-        fullscreenControl.button.innerText = isFullscreen ? 'Exit Map' : 'Full Map';
+        fullscreenControl.button.innerHTML = isFullscreen
+          ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9V5a2 2 0 0 1 2-2h4"/><path d="M15 3h4a2 2 0 0 1 2 2v4"/><path d="M21 15v4a2 2 0 0 1-2 2h-4"/><path d="M9 21H5a2 2 0 0 1-2-2v-4"/><polyline points="9 9 3 9 3 3"/><polyline points="15 9 21 9 21 3"/><polyline points="15 15 21 15 21 21"/><polyline points="9 15 3 15 3 21"/></svg>`
+          : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4"/><path d="M15 3h4a2 2 0 0 1 2 2v4"/><path d="M9 21H5a2 2 0 0 1-2-2v-4"/><path d="M15 21h4a2 2 0 0 0 2-2v-4"/><polyline points="9 9 15 9 15 15"/><polyline points="15 15 9 15 9 9"/></svg>`;
         fullscreenControl.button.setAttribute('aria-pressed', String(isFullscreen));
       }
       if (isFullscreen) {
@@ -400,8 +402,8 @@ export default function RestaurantMap({ restaurants, userLatLng }) {
               const button = document.createElement('button');
               button.type = 'button';
               button.className = 'maplibre-fullscreen-toggle';
-              button.textContent = 'Full Map';
-              button.setAttribute('aria-label', 'Expand map');
+              button.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3H5a2 2 0 0 0-2 2v4"/><path d="M15 3h4a2 2 0 0 1 2 2v4"/><path d="M9 21H5a2 2 0 0 1-2-2v-4"/><path d="M15 21h4a2 2 0 0 0 2-2v-4"/><polyline points="9 9 15 9 15 15"/><polyline points="15 15 9 15 9 9"/></svg>`;
+              button.setAttribute('aria-label', 'Toggle map fullscreen');
               button.setAttribute('aria-pressed', 'false');
               button.addEventListener('click', toggleFullscreen);
               container.appendChild(button);

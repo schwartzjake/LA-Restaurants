@@ -180,22 +180,22 @@ body.map-fullscreen-locked {
 
 .maplibre-fullscreen-toggle {
   background-color: rgba(18, 18, 18, 0.85) !important;
-  border-radius: 4px !important;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 6px !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
   color: #f2f2f2 !important;
-  font-size: 0.68rem !important;
-  letter-spacing: 0.08em !important;
-  text-transform: uppercase;
   display: inline-flex !important;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 0 10px !important;
-  width: auto !important;
-  min-width: 70px;
-  height: 30px !important;
+  padding: 0 !important;
+  width: 34px !important;
+  height: 34px !important;
 }
 
 .maplibre-fullscreen-toggle:hover {
   background-color: rgba(34, 34, 34, 0.9) !important;
+}
+
+.maplibre-fullscreen-toggle svg {
+  width: 14px;
+  height: 14px;
 }

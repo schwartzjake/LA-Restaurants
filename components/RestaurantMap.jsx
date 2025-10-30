@@ -191,6 +191,36 @@ export default function RestaurantMap({ restaurants, userLatLng }) {
     map.on('styledata', handleStyle);
 
     let handleSourceData;
+    let fullscreenControl;
+    let isFullscreen = false;
+
+    const disablePageScroll = () => {
+      document.body.classList.add('map-fullscreen-locked');
+    };
+
+    const enablePageScroll = () => {
+      document.body.classList.remove('map-fullscreen-locked');
+    };
+
+    const setFullscreen = (nextState) => {
+      if (!containerRef.current) return;
+      isFullscreen = nextState;
+      containerRef.current.classList.toggle('fullscreen-map', isFullscreen);
+      if (fullscreenControl?.button) {
+        fullscreenControl.button.innerText = isFullscreen ? 'Exit Map' : 'Full Map';
+        fullscreenControl.button.setAttribute('aria-pressed', String(isFullscreen));
+      }
+      if (isFullscreen) {
+        disablePageScroll();
+      } else {
+        enablePageScroll();
+      }
+      requestAnimationFrame(() => map.resize());
+    };
+
+    const toggleFullscreen = () => {
+      setFullscreen(!isFullscreen);
+    };
 
     const attemptInitialFit = () => {
       if (hasFitInitialBounds.current) return;
@@ -358,12 +388,51 @@ export default function RestaurantMap({ restaurants, userLatLng }) {
 
       attemptInitialFit();
       map.on('data', handleSourceData);
+
+      if (typeof window !== 'undefined') {
+        const prefersMobile = window.matchMedia('(max-width: 768px)').matches;
+        if (prefersMobile) {
+          fullscreenControl = {
+            onAdd(ctrlMap) {
+              this._map = ctrlMap;
+              const container = document.createElement('div');
+              container.className = 'maplibregl-ctrl maplibregl-ctrl-group';
+              const button = document.createElement('button');
+              button.type = 'button';
+              button.className = 'maplibre-fullscreen-toggle';
+              button.textContent = 'Full Map';
+              button.setAttribute('aria-label', 'Expand map');
+              button.setAttribute('aria-pressed', 'false');
+              button.addEventListener('click', toggleFullscreen);
+              container.appendChild(button);
+              fullscreenControl.button = button;
+              return container;
+            },
+            onRemove() {
+              if (fullscreenControl?.button) {
+                fullscreenControl.button.removeEventListener('click', toggleFullscreen);
+              }
+              this._map = undefined;
+            },
+          };
+          map.addControl(fullscreenControl, 'top-right');
+        }
+      }
     });
 
     return () => {
       map.off('styledata', handleStyle);
       if (handleSourceData) {
         map.off('data', handleSourceData);
+      }
+      if (fullscreenControl) {
+        map.removeControl(fullscreenControl);
+      }
+      if (isFullscreen) {
+        enablePageScroll();
+        if (containerRef.current) {
+          containerRef.current.classList.remove('fullscreen-map');
+        }
       }
       map.remove();
       mapRef.current = null;

@@ -18,6 +18,7 @@ export default function MultiSelectFilter({
   const listRef = useRef(null);
   const [menuPlacement, setMenuPlacement] = useState({ top: 0, left: 0, width: 0, maxHeight: 240, render: false });
   const [portalEl, setPortalEl] = useState(null);
+  const keyboardEngagedRef = useRef(false);
 
   /* Close dropdown on outside click */
   useEffect(() => {
@@ -76,29 +77,36 @@ export default function MultiSelectFilter({
     window.addEventListener('scroll', handler, true);
     window.addEventListener('resize', handler);
     const viewport = window.visualViewport;
-    viewport?.addEventListener('resize', handler);
-    viewport?.addEventListener('scroll', handler);
+    const handleViewportResize = () => {
+      keyboardEngagedRef.current = true;
+      updatePlacement();
+    };
+    const handleViewportScroll = () => {
+      keyboardEngagedRef.current = true;
+      updatePlacement();
+    };
+    viewport?.addEventListener('resize', handleViewportResize);
+    viewport?.addEventListener('scroll', handleViewportScroll);
 
     return () => {
       window.removeEventListener('scroll', handler, true);
       window.removeEventListener('resize', handler);
-      viewport?.removeEventListener('resize', handler);
-      viewport?.removeEventListener('scroll', handler);
+      viewport?.removeEventListener('resize', handleViewportResize);
+      viewport?.removeEventListener('scroll', handleViewportScroll);
     };
   }, [open, menu.length]);
 
   useEffect(() => {
     if (!open) {
       setMenuPlacement(prev => ({ ...prev, render: false }));
+      keyboardEngagedRef.current = false;
     }
   }, [open]);
 
   useEffect(() => {
     if (!open) return undefined;
     const handleScroll = () => {
-      const viewport = window.visualViewport;
-      const isResizing = Boolean(viewport?.height && viewport?.height !== window.innerHeight);
-      if (!isResizing) {
+      if (!keyboardEngagedRef.current) {
         setOpen(false);
       }
     };

@@ -85,6 +85,16 @@
   border-bottom: none !important;
 }
 
+.maplibregl-popup-anchor-left .maplibregl-popup-tip {
+  border-right-color: rgba(13, 13, 13, 0.95) !important;
+  border-left: none !important;
+}
+
+.maplibregl-popup-anchor-right .maplibregl-popup-tip {
+  border-left-color: rgba(13, 13, 13, 0.95) !important;
+  border-right: none !important;
+}
+
 .maplibre-popup {
   min-width: 220px;
   max-width: 280px;

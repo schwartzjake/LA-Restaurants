@@ -90,7 +90,9 @@ body.map-fullscreen-locked {
   transform: translateY(-100%);
   pointer-events: auto;
   max-height: min(88vh, 640px);
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
 }
 
 .map-filter-overlay.open {
@@ -131,6 +133,13 @@ body.map-fullscreen-locked {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.map-filter-overlay__content {
+  flex: 1;
+  overflow-y: auto;
+  margin-right: -6px;
+  padding-right: 6px;
 }
 
 .map-filter-overlay__actions {

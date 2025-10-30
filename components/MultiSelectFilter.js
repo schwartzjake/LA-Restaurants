@@ -1,7 +1,8 @@
 // MultiSelectFilter – dropdown chips with explicit light dropdown styling
 // Used globally; default dropdown list is readable black-on-white.
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect } from 'react';
+import { createPortal } from 'react-dom';
 
 export default function MultiSelectFilter({
   options,
@@ -15,6 +16,8 @@ export default function MultiSelectFilter({
   const boxRef = useRef(null);
   const inputRef = useRef(null);
   const listRef = useRef(null);
+  const [menuPlacement, setMenuPlacement] = useState({ top: 0, left: 0, width: 0, maxHeight: 240, render: false });
+  const [portalEl, setPortalEl] = useState(null);
 
   /* Close dropdown on outside click */
   useEffect(() => {
@@ -28,6 +31,67 @@ export default function MultiSelectFilter({
   const menu = options
     .filter(o => o.toLowerCase().includes(query.toLowerCase()) && !value.includes(o))
     .sort();
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const el = document.createElement('div');
+    el.className = 'multiselect-portal';
+    document.body.appendChild(el);
+    setPortalEl(el);
+    return () => {
+      document.body.removeChild(el);
+    };
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!open || !boxRef.current) return;
+
+    const updatePlacement = () => {
+      const rect = boxRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const viewport = window.visualViewport;
+      const viewportHeight = (viewport?.height ?? window.innerHeight) - (viewport?.offsetTop ?? 0);
+      const viewportWidth = viewport?.width ?? window.innerWidth;
+      const padding = 12;
+      const gap = 6;
+      const availableBelow = Math.max(0, viewportHeight - rect.bottom - padding);
+      const availableAbove = Math.max(0, rect.top - padding);
+      const left = Math.min(rect.left, viewportWidth - rect.width - padding);
+      const width = rect.width;
+
+      if (availableBelow >= 200 || availableBelow >= availableAbove) {
+        const maxHeight = Math.min(Math.max(availableBelow, 200), 360);
+        const top = Math.min(rect.bottom + gap, viewportHeight - padding - maxHeight);
+        setMenuPlacement({ top, left, width, maxHeight, render: true, drop: 'down' });
+      } else {
+        const maxHeight = Math.min(Math.max(availableAbove, 180), 360);
+        const top = Math.max(padding, rect.top - maxHeight - gap);
+        setMenuPlacement({ top, left, width, maxHeight, render: true, drop: 'up' });
+      }
+    };
+
+    updatePlacement();
+
+    const handler = () => updatePlacement();
+    window.addEventListener('scroll', handler, true);
+    window.addEventListener('resize', handler);
+    const viewport = window.visualViewport;
+    viewport?.addEventListener('resize', handler);
+    viewport?.addEventListener('scroll', handler);
+
+    return () => {
+      window.removeEventListener('scroll', handler, true);
+      window.removeEventListener('resize', handler);
+      viewport?.removeEventListener('resize', handler);
+      viewport?.removeEventListener('scroll', handler);
+    };
+  }, [open, menu.length]);
+
+  useEffect(() => {
+    if (!open) {
+      setMenuPlacement(prev => ({ ...prev, render: false }));
+    }
+  }, [open]);
 
   const add = item => {
     onChange([...value, item]);
@@ -100,24 +164,35 @@ export default function MultiSelectFilter({
       </div>
 
       {/* Dropdown list */}
-      {open && menu.length > 0 && (
-        <ul
-          ref={listRef}
-          className="absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded border border-gray-400 bg-white text-black shadow-lg">
-          {menu.map((item, index) => (
-            <li
-              key={item}
-              onMouseDown={(e) => {
-                e.preventDefault();
-                add(item);
-              }}
-              className={`cursor-pointer px-3 py-1 text-sm uppercase transition-colors duration-150 ${index === highlightedIndex ? 'bg-yellow-300 font-bold' : 'hover:bg-yellow-100'}`}
-            >
-              {item}
-            </li>
-          ))}
-        </ul>
-      )}
+      {open && menu.length > 0 && menuPlacement.render && portalEl &&
+        createPortal(
+          <ul
+            ref={listRef}
+            style={{
+              position: 'fixed',
+              top: menuPlacement.top,
+              left: menuPlacement.left,
+              width: menuPlacement.width,
+              maxHeight: menuPlacement.maxHeight,
+              zIndex: 1300,
+            }}
+            className="mt-0 overflow-y-auto rounded border border-gray-400 bg-white text-black shadow-lg"
+          >
+            {menu.map((item, index) => (
+              <li
+                key={item}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  add(item);
+                }}
+                className={`cursor-pointer px-3 py-1 text-sm uppercase transition-colors duration-150 ${index === highlightedIndex ? 'bg-yellow-300 font-bold' : 'hover:bg-yellow-100'}`}
+              >
+                {item}
+              </li>
+            ))}
+          </ul>,
+          portalEl
+        )}
     </div>
   );
 }

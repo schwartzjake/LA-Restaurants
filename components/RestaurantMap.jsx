@@ -599,21 +599,23 @@ export default function RestaurantMap({
                 &times;
               </button>
             </div>
-            <div className="map-filter-overlay__body">
-              <MultiSelectFilter
-                options={allCuisines}
-                value={selCuisines}
-                onChange={setSelCuisines}
-                placeholder="Select Cuisine(s)"
-                inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-gray-600 focus:border-white"
-              />
-              <MultiSelectFilter
-                options={allHoods}
-                value={selHoods}
-                onChange={setSelHoods}
-                placeholder="Select Neighborhood(s)"
-                inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-gray-600 focus:border-white"
-              />
+            <div className="map-filter-overlay__content">
+              <div className="map-filter-overlay__body">
+                <MultiSelectFilter
+                  options={allCuisines}
+                  value={selCuisines}
+                  onChange={setSelCuisines}
+                  placeholder="Select Cuisine(s)"
+                  inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-gray-600 focus:border-white"
+                />
+                <MultiSelectFilter
+                  options={allHoods}
+                  value={selHoods}
+                  onChange={setSelHoods}
+                  placeholder="Select Neighborhood(s)"
+                  inputClassName="bg-transparent text-[#F2F2F2] placeholder-gray-400 border-b border-gray-600 focus:border-white"
+                />
+              </div>
               <div className="map-filter-overlay__actions">
                 <button type="button" className="map-filter-overlay__clear" onClick={clearFilters}>
                   Clear All

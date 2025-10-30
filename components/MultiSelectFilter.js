@@ -96,7 +96,11 @@ export default function MultiSelectFilter({
   useEffect(() => {
     if (!open) return undefined;
     const handleScroll = () => {
-      setOpen(false);
+      const viewport = window.visualViewport;
+      const isResizing = Boolean(viewport?.height && viewport?.height !== window.innerHeight);
+      if (!isResizing) {
+        setOpen(false);
+      }
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll, { passive: true });

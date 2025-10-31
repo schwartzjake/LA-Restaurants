@@ -84,12 +84,10 @@ export default function Home() {
     return res[0] ? { lat: +res[0].lat, lng: +res[0].lon } : null
   }
 
-const badge = s => (s <= 1200 ? 'text-green-400' : s <= 2100 ? 'text-yellow-400' : 'text-red-500')
+  const badge = s => (s <= 1200 ? 'text-green-400' : s <= 2100 ? 'text-yellow-400' : 'text-red-500')
 
-console.log('ORS KEY at build', process.env.NEXT_PUBLIC_ORS_API_KEY)
-
-const fetchDriveTimes = async () => {
-  if (!address.trim() || !ORS_KEY || calculating) return
+  const fetchDriveTimes = async () => {
+    if (!address.trim() || !ORS_KEY || calculating) return
     setCalculating(true)
     try {
       const origin = await geocode(address)

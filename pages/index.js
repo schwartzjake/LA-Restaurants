@@ -11,8 +11,6 @@ const RestaurantMap = dynamic(() => import('../components/RestaurantMap'), {
   loading: () => <div className="h-[60vh] flex items-center justify-center">Loading map…</div>,
 });
 
-const ORS_KEY = process.env.NEXT_PUBLIC_ORS_API_KEY
-
 export default function Home() {
   const [restaurants, setRestaurants] = useState([])
   const [selCuisines, setSelCuisines] = useState([])
@@ -77,36 +75,45 @@ export default function Home() {
   const allCuisines = useMemo(() => [...new Set(restaurants.flatMap(r => r.cuisines || []))].sort(), [restaurants])
   const allHoods = useMemo(() => [...new Set(restaurants.map(r => r.neighborhood).filter(Boolean))].sort(), [restaurants])
 
-  const geocode = async addr => {
-    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(addr)}`, {
-      headers: { 'User-Agent': 'la-rest/1.0 (contact@example.com)' }
-    }).then(r => r.json())
-    return res[0] ? { lat: +res[0].lat, lng: +res[0].lon } : null
-  }
-
   const badge = s => (s <= 1200 ? 'text-green-400' : s <= 2100 ? 'text-yellow-400' : 'text-red-500')
 
   const fetchDriveTimes = async () => {
-    if (!address.trim() || !ORS_KEY || calculating) return
+    if (!address.trim() || calculating) return
+
+    const coords = restaurants
+      .map(r => {
+        const lat = typeof r.latitude === 'number' ? r.latitude : Number.parseFloat(r.latitude)
+        const lng = typeof r.longitude === 'number' ? r.longitude : Number.parseFloat(r.longitude)
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null
+        return { id: r.id, latitude: lat, longitude: lng }
+      })
+      .filter(Boolean)
+
+    if (!coords.length) { alert('No restaurant coordinates'); return }
+
     setCalculating(true)
     try {
-      const origin = await geocode(address)
-      if (!origin) { alert('Address not found'); return }
-      setUserLatLng([origin.lat, origin.lng])
+      const response = await fetch('/api/drivetimes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address, restaurants: coords })
+      })
 
-      const coords = restaurants.filter(r => Number.isFinite(r.latitude) && Number.isFinite(r.longitude))
-      if (!coords.length) { alert('No restaurant coordinates'); return }
-
-      const CHUNK = 40, all = {}
-      for (let i = 0; i < coords.length; i += CHUNK) {
-        const slice = coords.slice(i, i + CHUNK)
-        const body = JSON.stringify({ locations: [[origin.lng, origin.lat], ...slice.map(r => [r.longitude, r.latitude])], metrics: ['duration'], units: 'm' })
-        const res = await fetch('https://api.openrouteservice.org/v2/matrix/driving-car', { method: 'POST', headers: { Authorization: ORS_KEY, 'Content-Type': 'application/json' }, body }).then(r => r.json())
-        if (res.error) { console.error(res.error); alert(res.error.message); return }
-        res.durations[0].slice(1).forEach((sec, idx) => { all[slice[idx].id] = sec })
-        await new Promise(r => setTimeout(r, 800))
+      const payload = await response.json().catch(() => ({}))
+      if (!response.ok) {
+        const message = payload.error || 'Failed to calculate drive times'
+        throw new Error(message)
       }
-      setDriveTimes(all)
+
+      setDriveTimes(payload.durations || {})
+      const lat = Number(payload.origin?.lat)
+      const lng = Number(payload.origin?.lng)
+      if (Number.isFinite(lat) && Number.isFinite(lng)) {
+        setUserLatLng([lat, lng])
+      }
+    } catch (err) {
+      console.error('Drive time calculation failed:', err)
+      alert(err.message || 'Failed to calculate drive times')
     } finally {
       setCalculating(false)
     }
@@ -129,7 +136,7 @@ export default function Home() {
   }, [restaurants, selCuisines, selHoods, driveTimes])
 
   const clearFilters = () => { setSelCuisines([]); setSelHoods([]); }
-  const clearAddress = () => { setAddress(''); setDriveTimes({}) }
+  const clearAddress = () => { setAddress(''); setDriveTimes({}); setUserLatLng(null) }
 
   return (
     <main className="overscroll-contain relative min-h-screen bg-[#0D0D0D] px-4 sm:px-6 py-10 sm:py-12 text-[#F2F2F2] font-mono">

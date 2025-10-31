@@ -1,5 +1,5 @@
 // pages/index.js – Adds view toggle (card/list) + responsive layout + reintroduce scroll-based filter bar toggle with icon buttons
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import dynamic from 'next/dynamic';
 import MultiSelectFilter from '../components/MultiSelectFilter'
 import RestaurantGrid from '../components/RestaurantGrid'
@@ -25,6 +25,7 @@ export default function Home() {
   const [hideFilters, setHideFilters] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [scrolledPastHeader, setScrolledPastHeader] = useState(false)
+  const addressFocusRef = useRef(false)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -56,6 +57,11 @@ export default function Home() {
       const y = window.scrollY;
       const delta = y - lastY;
 
+      if (addressFocusRef.current) {
+        lastY = y;
+        return;
+      }
+
       if (y <= 120) {
         setHideFilters(false);
         setScrolledPastHeader(false);
@@ -76,6 +82,19 @@ export default function Home() {
   const allHoods = useMemo(() => [...new Set(restaurants.map(r => r.neighborhood).filter(Boolean))].sort(), [restaurants])
 
   const badge = s => (s <= 1200 ? 'text-green-400' : s <= 2100 ? 'text-yellow-400' : 'text-red-500')
+
+  const handleAddressFocus = () => {
+    addressFocusRef.current = true
+    setHideFilters(false)
+    setScrolledPastHeader(false)
+  }
+
+  const handleAddressBlur = () => {
+    // delay releasing lock slightly to avoid immediate hide as viewport settles
+    setTimeout(() => {
+      addressFocusRef.current = false
+    }, 0)
+  }
 
   const fetchDriveTimes = async () => {
     if (!address.trim() || calculating) return
@@ -192,18 +211,20 @@ export default function Home() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 mt-6">
-         <input
-  type="text"
-  value={address}
-  onChange={e => setAddress(e.target.value)}
-    onKeyDown={e => {
-    if (e.key === 'Enter') {
-      fetchDriveTimes();
-    }
-              }}
-  placeholder="Enter address to sort by drive time"
-  className="w-full bg-transparent border border-gray-700 px-4 py-3 text-[#F2F2F2] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white"
-/>
+          <input
+            type="text"
+            value={address}
+            onChange={e => setAddress(e.target.value)}
+            onFocus={handleAddressFocus}
+            onBlur={handleAddressBlur}
+            onKeyDown={e => {
+              if (e.key === 'Enter') {
+                fetchDriveTimes();
+              }
+            }}
+            placeholder="Enter address to sort by drive time"
+            className="w-full bg-transparent border border-gray-700 px-4 py-3 text-[#F2F2F2] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white"
+          />
           <div className="flex gap-3">
             <button onClick={fetchDriveTimes} disabled={!address.trim() || loading} className="bg-white text-black font-bold px-6 py-3 uppercase text-sm tracking-wide hover:bg-gray-200 disabled:opacity-30">Calculate</button>
             {address && <button onClick={clearAddress} className="px-3 py-3 border border-[#444] hover:bg-[#1e1e1e]" title="Clear address"><span className="sr-only">Clear address</span>⨯</button>}

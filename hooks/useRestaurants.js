@@ -1,5 +1,14 @@
 import { useEffect, useState } from 'react';
 
+const shuffle = (items) => {
+  const arr = [...items];
+  for (let i = arr.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+};
+
 export default function useRestaurants() {
   const [data, setData] = useState([]);
   const [error, setError] = useState(null);
@@ -19,7 +28,8 @@ export default function useRestaurants() {
         }
         const payload = await response.json();
         if (isMounted) {
-          setData(Array.isArray(payload) ? payload : []);
+          const normalized = Array.isArray(payload) ? payload : [];
+          setData(shuffle(normalized));
           setError(null);
         }
       } catch (err) {

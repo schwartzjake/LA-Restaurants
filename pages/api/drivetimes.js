@@ -1,17 +1,10 @@
+import { sanitizeRestaurantRecord, toNumber } from '../../lib/restaurantUtils';
+
 const ORS_API_KEY = (process.env.ORS_API_KEY || process.env.NEXT_PUBLIC_ORS_API_KEY || '').trim();
 const MATRIX_URL = 'https://api.openrouteservice.org/v2/matrix/driving-car';
 const GEOCODE_URL = 'https://nominatim.openstreetmap.org/search';
 const CHUNK_SIZE = 40;
 const PAUSE_MS = 800;
-
-const toNumber = (value) => {
-  if (typeof value === 'number') return Number.isFinite(value) ? value : null;
-  if (typeof value === 'string') {
-    const parsed = Number.parseFloat(value);
-    return Number.isFinite(parsed) ? parsed : null;
-  }
-  return null;
-};
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -36,12 +29,11 @@ export default async function handler(req, res) {
   }
 
   const sanitized = restaurants
+    .map((entry) => sanitizeRestaurantRecord(entry))
     .map((r) => {
-      const id = r.id || r.ID || r.Id;
-      const lat = toNumber(r.latitude ?? r.lat ?? r.Latitude);
-      const lng = toNumber(r.longitude ?? r.lng ?? r.Longitude);
-      if (!id || !Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-      return { id, latitude: lat, longitude: lng };
+      if (!r || !r.id) return null;
+      if (!Number.isFinite(r.latitude) || !Number.isFinite(r.longitude)) return null;
+      return { id: r.id, latitude: r.latitude, longitude: r.longitude };
     })
     .filter(Boolean);
 

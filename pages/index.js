@@ -5,6 +5,8 @@ import MultiSelectFilter from '../components/MultiSelectFilter'
 import RestaurantGrid from '../components/RestaurantGrid'
 import RestaurantList from '../components/RestaurantList'
 import { LayoutGrid, List, MapPinned } from 'lucide-react'
+import useRestaurants from '../hooks/useRestaurants';
+import { sortByDriveTime } from '../lib/restaurantUtils';
 
 const RestaurantMap = dynamic(() => import('../components/RestaurantMap'), {
   ssr: false,
@@ -12,20 +14,18 @@ const RestaurantMap = dynamic(() => import('../components/RestaurantMap'), {
 });
 
 export default function Home() {
-  const [restaurants, setRestaurants] = useState([])
   const [selCuisines, setSelCuisines] = useState([])
   const [selHoods, setSelHoods] = useState([])
   const [address, setAddress] = useState('')
   const [driveTimes, setDriveTimes] = useState({})
-  const [loading, setLoading] = useState(true)
   const [calculating, setCalculating] = useState(false)
-  const [error, setError] = useState(null)
   const [viewMode, setViewMode] = useState('card')
   const [userLatLng, setUserLatLng] = useState(null)
   const [hideFilters, setHideFilters] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const [scrolledPastHeader, setScrolledPastHeader] = useState(false)
   const addressFocusRef = useRef(false)
+  const { data: restaurants = [], error, loading } = useRestaurants();
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -39,17 +39,6 @@ export default function Home() {
     mq.addListener(update)
     return () => mq.removeListener(update)
   }, [])
-
-  useEffect(() => {
-    fetch('/api/restaurants')
-      .then(r => (r.ok ? r.json() : Promise.reject(r.statusText)))
-      .then(data => setRestaurants(
-        data.map((r, idx) => ({ ...r, id: r.id ?? `r${idx}` }))
-            .sort(() => Math.random() - 0.5)))
-      .catch(setError)
-      .finally(() => setLoading(false))
-  }, [])
-
   useEffect(() => {
     let lastY = 0;
 
@@ -78,8 +67,14 @@ export default function Home() {
   }, []);
 
 
-  const allCuisines = useMemo(() => [...new Set(restaurants.flatMap(r => r.cuisines || []))].sort(), [restaurants])
-  const allHoods = useMemo(() => [...new Set(restaurants.map(r => r.neighborhood).filter(Boolean))].sort(), [restaurants])
+  const allCuisines = useMemo(
+    () => [...new Set(restaurants.flatMap(r => r.cuisines || []))].sort(),
+    [restaurants]
+  )
+  const allHoods = useMemo(
+    () => [...new Set(restaurants.map(r => r.neighborhood).filter(Boolean))].sort(),
+    [restaurants]
+  )
 
   const badge = s => (s <= 1200 ? 'text-green-400' : s <= 2100 ? 'text-yellow-400' : 'text-red-500')
 
@@ -101,10 +96,8 @@ export default function Home() {
 
     const coords = restaurants
       .map(r => {
-        const lat = typeof r.latitude === 'number' ? r.latitude : Number.parseFloat(r.latitude)
-        const lng = typeof r.longitude === 'number' ? r.longitude : Number.parseFloat(r.longitude)
-        if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null
-        return { id: r.id, latitude: lat, longitude: lng }
+        if (!Number.isFinite(r.latitude) || !Number.isFinite(r.longitude)) return null
+        return { id: r.id, latitude: r.latitude, longitude: r.longitude }
       })
       .filter(Boolean)
 
@@ -139,6 +132,8 @@ export default function Home() {
   }
 
   const filtered = useMemo(() => {
+    if (!restaurants.length) return []
+
     let list = restaurants
     if (selCuisines.length && selHoods.length) {
       list = list.filter(r =>
@@ -150,7 +145,7 @@ export default function Home() {
     } else if (selHoods.length) {
       list = list.filter(r => selHoods.includes(r.neighborhood))
     }
-    if (Object.keys(driveTimes).length) list = [...list].sort((a, b) => (driveTimes[a.id] ?? 1e9) - (driveTimes[b.id] ?? 1e9))
+    if (Object.keys(driveTimes).length) return sortByDriveTime(list, driveTimes)
     return list
   }, [restaurants, selCuisines, selHoods, driveTimes])
 

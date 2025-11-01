@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import { MAP_STYLE_CONFIG } from '../lib/mapStyleConfig';
+import { normalizeCuisines, sanitizeRestaurantRecord } from '../lib/restaurantUtils';
 import MultiSelectFilter from './MultiSelectFilter';
 
 const GEOAPIFY_KEY = (process.env.NEXT_PUBLIC_GEOAPIFY_KEY || '').trim();
@@ -18,60 +19,33 @@ const escapeHtml = (unsafe) =>
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
 
-const normalizeCuisines = (value) => {
-  if (Array.isArray(value)) {
-    return value.map((item) => `${item}`.trim()).filter(Boolean);
-  }
-
-  if (typeof value === 'string') {
-    const trimmed = value.trim();
-    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-      try {
-        const parsed = JSON.parse(trimmed);
-        if (Array.isArray(parsed)) {
-          return parsed.map((item) => `${item}`.trim()).filter(Boolean);
-        }
-      } catch (_) {
-        // fall through to delimiter-based parsing
-      }
-    }
-
-    return trimmed
-      .replace(/^\[|\]$/g, '')
-      .split(',')
-      .map((part) => part.replace(/^['"]+|['"]+$/g, '').trim())
-      .filter(Boolean);
-  }
-
-  return [];
-};
-
 const buildGeoJson = (restaurants = []) => {
-  const toNum = (value) => (typeof value === 'string' ? parseFloat(value) : value);
-
   const features = restaurants
-    .map((r) => {
-      const lat = toNum(r.latitude ?? r.Latitude ?? r.lat);
-      const lng = toNum(r.longitude ?? r.Longitude ?? r.lng);
-      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+    .map((entry) => sanitizeRestaurantRecord(entry))
+    .map((restaurant) => {
+      if (
+        !restaurant ||
+        !restaurant.id ||
+        !Number.isFinite(restaurant.latitude) ||
+        !Number.isFinite(restaurant.longitude)
+      ) {
+        return null;
+      }
 
-      const name = r.name ?? r.Name ?? '(Unnamed)';
-      const cuisines = normalizeCuisines(r.cuisines ?? r['Cuisine(s)']);
-
-      const googleUrl = r.googleMapsUrl ?? r['Google Maps URL'] ?? r.google_maps_url ?? '#';
+      const cuisines = Array.isArray(restaurant.cuisines) ? restaurant.cuisines : [];
 
       return {
         type: 'Feature',
         geometry: {
           type: 'Point',
-          coordinates: [lng, lat],
+          coordinates: [restaurant.longitude, restaurant.latitude],
         },
         properties: {
-          id: r.id ?? name,
-          name,
+          id: restaurant.id,
+          name: restaurant.name ?? '(Unnamed)',
           cuisines,
-          googleUrl,
-          label: truncate(name),
+          googleUrl: restaurant.googleMapsUrl ?? '#',
+          label: truncate(restaurant.name ?? 'Restaurant'),
         },
       };
     })
@@ -122,7 +96,8 @@ const applyStyleOverrides = (map, overrides) => {
 const buildPopupHtml = ({ name, cuisines, googleUrl }) => {
   const safeName = escapeHtml(name);
   const safeUrl = escapeHtml(googleUrl);
-  const chips = cuisines
+  const safeCuisines = Array.isArray(cuisines) ? cuisines : normalizeCuisines(cuisines);
+  const chips = safeCuisines
     .slice(0, 6)
     .map((cuisine) => `<span class="maplibre-popup-chip">${escapeHtml(cuisine)}</span>`)
     .join('');
@@ -389,7 +364,7 @@ export default function RestaurantMap({
           .setHTML(
               buildPopupHtml({
                 name: properties?.name ?? 'Restaurant',
-                cuisines: normalizeCuisines(properties?.cuisines),
+                cuisines: properties?.cuisines ?? [],
                 googleUrl: properties?.googleUrl ?? '#',
               })
           )

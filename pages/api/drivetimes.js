@@ -2,7 +2,7 @@ import { sanitizeRestaurantRecord, toNumber } from '../../lib/restaurantUtils';
 
 const ORS_API_KEY = (process.env.ORS_API_KEY || process.env.NEXT_PUBLIC_ORS_API_KEY || '').trim();
 const MATRIX_URL = 'https://api.openrouteservice.org/v2/matrix/driving-car';
-const GEOCODE_URL = 'https://nominatim.openstreetmap.org/search';
+const GEOCODE_URL = 'https://api.openrouteservice.org/geocode/search';
 const CHUNK_SIZE = 40;
 const PAUSE_MS = 800;
 
@@ -42,9 +42,14 @@ export default async function handler(req, res) {
   }
 
   try {
-    const geocodeUrl = `${GEOCODE_URL}?format=json&limit=1&q=${encodeURIComponent(address.trim())}`;
+    const geoParams = new URLSearchParams({
+      api_key: ORS_API_KEY,
+      text: address.trim(),
+      size: '1',
+    });
+    const geocodeUrl = `${GEOCODE_URL}?${geoParams.toString()}`;
     const geoRes = await fetch(geocodeUrl, {
-      headers: { 'User-Agent': 'la-restaurants/1.0 (contact@example.com)', Accept: 'application/json' },
+      headers: { Accept: 'application/json' },
     });
 
     if (!geoRes.ok) {
@@ -53,9 +58,10 @@ export default async function handler(req, res) {
     }
 
     const geocodeData = await geoRes.json();
-    const match = Array.isArray(geocodeData) ? geocodeData[0] : null;
-    const originLat = toNumber(match?.lat);
-    const originLng = toNumber(match?.lon);
+    const match = Array.isArray(geocodeData?.features) ? geocodeData.features[0] : null;
+    const coords = Array.isArray(match?.geometry?.coordinates) ? match.geometry.coordinates : [];
+    const originLng = toNumber(coords[0]);
+    const originLat = toNumber(coords[1]);
 
     if (!Number.isFinite(originLat) || !Number.isFinite(originLng)) {
       return res.status(404).json({ error: 'Address not found' });
